@@ -25,175 +25,175 @@
 # Revised 15--?? November 2014 after significantly improving the model
 # by Andy Wickert
 
-#%module
-#% description: Computes lithospheric flexural isostasy
-#% keyword: raster
-#% keyword: geophysics
-#%end
+# %module
+# % description: Computes lithospheric flexural isostasy
+# % keyword: raster
+# % keyword: geophysics
+# %end
 
-#%flag
-#%  key: l
-#%  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
-#%end
+# %flag
+# %  key: l
+# %  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
+# %end
 
-#%flag
-#%  key: p
-#%  description: Auto-pad domain for variable-Te FD runs (reduces boundary effects from Te gradients at edges; trims output back to original region)
-#%end
+# %flag
+# %  key: p
+# %  description: Auto-pad domain for variable-Te FD runs (reduces boundary effects from Te gradients at edges; trims output back to original region)
+# %end
 
-#%option
-#%  key: method
-#%  type: string
-#%  description: Solution method: FD (finite difference), FFT (spectral, scalar Te only), or SAS (superposition of analytical solutions)
-#%  options: FD, FFT, SAS
-#%  required : yes
-#%end
+# %option
+# %  key: method
+# %  type: string
+# %  description: Solution method: FD (finite difference), FFT (spectral, scalar Te only), or SAS (superposition of analytical solutions)
+# %  options: FD, FFT, SAS
+# %  required : yes
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  type: string
-#%  description: Raster map of loads (thickness * density * g) [Pa]
-#%  required : yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  type: string
+# %  description: Raster map of loads (thickness * density * g) [Pa]
+# %  required : yes
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: te
-#%  type: string
-#%  description: Elastic thickness: scalar or raster; units chosen in "te_units"
-#%  required : yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: te
+# %  type: string
+# %  description: Elastic thickness: scalar or raster; units chosen in "te_units"
+# %  required : yes
+# %end
 
-#%option
-#%  key: te_units
-#%  type: string
-#%  description: Units for elastic thickness
-#%  options: m, km
-#%  required : yes
-#%end
+# %option
+# %  key: te_units
+# %  type: string
+# %  description: Units for elastic thickness
+# %  options: m, km
+# %  required : yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  type: string
-#%  description: Output raster map of vertical deflections [m]
-#%  required : yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  type: string
+# %  description: Output raster map of vertical deflections [m]
+# %  required : yes
+# %end
 
-#%option
-#%  key: solver
-#%  type: string
-#%  description: Solver type (FD method only)
-#%  options: direct, iterative
-#%  answer: direct
-#%  required : no
-#%end
+# %option
+# %  key: solver
+# %  type: string
+# %  description: Solver type (FD method only)
+# %  options: direct, iterative
+# %  answer: direct
+# %  required : no
+# %end
 
-#%option
-#%  key: tolerance
-#%  type: double
-#%  description: Convergence tolerance (relative residual) for iterative solver (FD only)
-#%  answer: 1E-3
-#%  required : no
-#%end
+# %option
+# %  key: tolerance
+# %  type: double
+# %  description: Convergence tolerance (relative residual) for iterative solver (FD only)
+# %  answer: 1E-3
+# %  required : no
+# %end
 
-#%option
-#%  key: northbc
-#%  type: string
-#%  description: Northern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: northbc
+# %  type: string
+# %  description: Northern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: southbc
-#%  type: string
-#%  description: Southern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: southbc
+# %  type: string
+# %  description: Southern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: westbc
-#%  type: string
-#%  description: Western boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: westbc
+# %  type: string
+# %  description: Western boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: eastbc
-#%  type: string
-#%  description: Eastern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: eastbc
+# %  type: string
+# %  description: Eastern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: g
-#%  type: double
-#%  description: gravitational acceleration at surface [m/s^2]
-#%  answer: 9.8
-#%  required : no
-#%end
+# %option
+# %  key: g
+# %  type: double
+# %  description: gravitational acceleration at surface [m/s^2]
+# %  answer: 9.8
+# %  required : no
+# %end
 
-#%option
-#%  key: ym
-#%  type: double
-#%  description: Young's Modulus [Pa]
-#%  answer: 65E9
-#%  required : no
-#%end
+# %option
+# %  key: ym
+# %  type: double
+# %  description: Young's Modulus [Pa]
+# %  answer: 65E9
+# %  required : no
+# %end
 
-#%option
-#%  key: nu
-#%  type: double
-#%  description: Poisson's ratio
-#%  answer: 0.25
-#%  required : no
-#%end
+# %option
+# %  key: nu
+# %  type: double
+# %  description: Poisson's ratio
+# %  answer: 0.25
+# %  required : no
+# %end
 
-#%option
-#%  key: rho_fill
-#%  type: double
-#%  description: Density of material that fills flexural depressions [kg/m^3]
-#%  answer: 0
-#%  required : no
-#%end
+# %option
+# %  key: rho_fill
+# %  type: double
+# %  description: Density of material that fills flexural depressions [kg/m^3]
+# %  answer: 0
+# %  required : no
+# %end
 
-#%option
-#%  key: rho_m
-#%  type: double
-#%  description: Mantle density [kg/m^3]
-#%  answer: 3300
-#%  required : no
-#%end
+# %option
+# %  key: rho_m
+# %  type: double
+# %  description: Mantle density [kg/m^3]
+# %  answer: 3300
+# %  required : no
+# %end
 
-#%option
-#%  key: sigma_xx
-#%  type: double
-#%  description: In-plane normal stress in the x-direction [Pa]; FD and FFT only
-#%  answer: 0
-#%  required : no
-#%end
+# %option
+# %  key: sigma_xx
+# %  type: double
+# %  description: In-plane normal stress in the x-direction [Pa]; FD and FFT only
+# %  answer: 0
+# %  required : no
+# %end
 
-#%option
-#%  key: sigma_yy
-#%  type: double
-#%  description: In-plane normal stress in the y-direction [Pa]; FD and FFT only
-#%  answer: 0
-#%  required : no
-#%end
+# %option
+# %  key: sigma_yy
+# %  type: double
+# %  description: In-plane normal stress in the y-direction [Pa]; FD and FFT only
+# %  answer: 0
+# %  required : no
+# %end
 
-#%option
-#%  key: sigma_xy
-#%  type: double
-#%  description: In-plane shear stress [Pa]; FD and FFT only
-#%  answer: 0
-#%  required : no
-#%end
+# %option
+# %  key: sigma_xy
+# %  type: double
+# %  description: In-plane shear stress [Pa]; FD and FFT only
+# %  answer: 0
+# %  required : no
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -393,7 +393,6 @@ def main():
     grass.run_command(
         "r.colors", map=options["output"], color="differences", quiet=True
     )
-
 
 
 def install_dependencies():
