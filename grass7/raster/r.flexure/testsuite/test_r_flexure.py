@@ -17,8 +17,7 @@
 Tests for r.flexure.
 
 Exercises FD, FFT, and SAS solution methods with a synthetic 10×10 load
-raster (100 m resolution). Skips automatically when gFlex >= 2.0.0 is not
-installed.
+raster (100 m resolution). Skips automatically when gFlex is not installed.
 
 Run inside a GRASS session (e.g., with --tmp-location XY):
     python -m grass.gunittest.main
@@ -50,7 +49,7 @@ cols: 10
 0 0 0 0 0 0 0 0 0 0
 """
 
-# Spatially variable Te raster (uniform 10 km — enables -p padding test).
+# Spatially variable Te raster at 100 m resolution (uniform 10 km).
 TE_ASCII = """\
 north: 1000
 south: 0
@@ -69,6 +68,26 @@ cols: 10
 10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
 10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
 """
+
+# Fixtures for the -p padding test: 30×30 at 5000 m (150 km × 150 km).
+# Te = 5000 m → α ≈ 23 km, flexural wavelength ≈ 144 km,
+# recommended pad ≈ 29 cells/side → padded domain is 88×88 (manageable).
+# The 10×10 at 100 m fixture above would produce ~1300 cells of padding
+# and a 2600×2600 FD matrix that crashes the direct solver.
+_PAD_ROW_ZERO = "0 " * 30
+_PAD_ROW_LOAD = "0 " * 14 + "1e9 " + "0 " * 15
+_PAD_TE_ROW = "5000 " * 30
+LOAD_PAD_ASCII = (
+    "north: 150000\nsouth: 0\neast: 150000\nwest: 0\nrows: 30\ncols: 30\n"
+    + (_PAD_ROW_ZERO + "\n") * 14
+    + _PAD_ROW_LOAD
+    + "\n"
+    + (_PAD_ROW_ZERO + "\n") * 15
+)
+TE_PAD_ASCII = (
+    "north: 150000\nsouth: 0\neast: 150000\nwest: 0\nrows: 30\ncols: 30\n"
+    + (_PAD_TE_ROW + "\n") * 30
+)
 
 
 def _gflex_ok():
@@ -127,6 +146,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te="10000",
             te_units="m",
+            northbc="0Moment0Shear",
+            southbc="0Moment0Shear",
+            eastbc="0Moment0Shear",
+            westbc="0Moment0Shear",
         )
 
     def test_fft_scalar_te(self):
@@ -157,17 +180,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te=self.te_rast,
             te_units="m",
-        )
-
-    def test_fd_raster_te_padded(self):
-        """FD with raster Te and -p domain-padding flag."""
-        self._run_and_check(
-            "test_rflex_fd_pad",
-            flags="p",
-            method="FD",
-            input=self.load,
-            te=self.te_rast,
-            te_units="m",
+            northbc="0Moment0Shear",
+            southbc="0Moment0Shear",
+            eastbc="0Moment0Shear",
+            westbc="0Moment0Shear",
         )
 
     def test_fd_sigma_stresses(self):
@@ -181,6 +197,10 @@ class TestRFlexure(TestCase):
             sigma_xx="1e6",
             sigma_yy="1e6",
             sigma_xy="0",
+            northbc="0Moment0Shear",
+            southbc="0Moment0Shear",
+            eastbc="0Moment0Shear",
+            westbc="0Moment0Shear",
         )
 
     def test_te_km_units(self):
@@ -220,6 +240,69 @@ class TestRFlexure(TestCase):
             eastbc="Mirror",
             westbc="Mirror",
         )
+
+
+@unittest.skipUnless(_gflex_ok(), "gFlex not available")
+class TestRFlexurePadded(TestCase):
+    """Test -p domain padding with a domain appropriately sized for the flexural wavelength.
+
+    The main TestRFlexure fixture (10×10 at 100 m, Te=10 km) would produce
+    ~1300 cells of padding per side, creating a 2600×2600 FD problem that
+    crashes the direct solver.  Here we use 30×30 at 5000 m with Te=5000 m
+    so padding is ~29 cells/side (88×88 padded domain).
+    """
+
+    load_pad = "test_rflex_pad_load"
+    te_pad = "test_rflex_pad_te"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.use_temp_region()
+        cls.runModule(
+            "r.in.ascii", input="-", stdin_=LOAD_PAD_ASCII, output=cls.load_pad
+        )
+        cls.runModule(
+            "r.in.ascii", input="-", stdin_=TE_PAD_ASCII, output=cls.te_pad
+        )
+        cls.runModule("g.region", raster=cls.load_pad)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.del_temp_region()
+        cls.runModule(
+            "g.remove",
+            flags="f",
+            type="raster",
+            name=",".join([cls.load_pad, cls.te_pad]),
+            quiet=True,
+        )
+
+    def test_fd_raster_te_padded(self):
+        """FD with raster Te and -p domain-padding flag; output trimmed to original region."""
+        output = "test_rflex_pad_out"
+        try:
+            self.assertModule(
+                "r.flexure",
+                flags="p",
+                method="FD",
+                input=self.load_pad,
+                te=self.te_pad,
+                te_units="m",
+                output=output,
+                northbc="0Moment0Shear",
+                southbc="0Moment0Shear",
+                eastbc="0Moment0Shear",
+                westbc="0Moment0Shear",
+            )
+            self.assertRasterExists(output)
+            # Output must be trimmed back to the original 30×30 region
+            self.assertRasterFitsUnivar(
+                raster=output, reference={"n": 900}, precision=0
+            )
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True
+            )
 
 
 if __name__ == "__main__":
