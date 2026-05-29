@@ -1,45 +1,55 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.flexure</em> computes how the rigid outer shell of a planet deforms elastically in response to surface-normal loads by solving equations for plate bending. This phenomenon is known as "flexural isostasy" and can be useful in cases of glacier/ice-cap/ice-sheet loading, sedimentary basin filling, mountain belt growth, volcano emplacement, sea-level change, and other geologic processes. <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are the GRASS GIS interfaces to the the model <a href=http://csdms.colorado.edu/wiki/Model:gFlex><b>gFlex</b></a>.
+<em>r.flexure</em> computes how the rigid outer shell of a planet deforms elastically in response to surface-normal loads by solving equations for plate bending. This phenomenon is known as "flexural isostasy" and is relevant to glacier/ice-cap/ice-sheet loading, sedimentary basin filling, mountain belt growth, volcano emplacement, sea-level change, and other geologic processes. <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are the GRASS GIS interfaces to the model <a href="https://github.com/awickert/gFlex"><b>gFlex</b></a>.
 
-As both <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are interfaces to gFlex, this must be downloaded and installed. The most recent versions of <b>gFlex</b> are available from <a href=https://github.com/awickert/gFlex>https://github.com/awickert/gFlex</a>, and installation instructions are avaliable on that page via the <i>README.md</i> file.
+As both <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are interfaces to gFlex, it must be downloaded and installed. The most recent versions of <b>gFlex</b> are available from <a href="https://github.com/awickert/gFlex">https://github.com/awickert/gFlex</a>, and installation instructions are available on that page via the <i>README.md</i> file.
 
 <h2>NOTES</h2>
 
-The parameter <b>method</b> sets whether the solution is Finite Difference ("FD") or Superposition of Analytical Solutions ("SAS"). The Finite difference method is typically faster for large arrays, and allows lithospheric elastic thickness to be varied laterally, following the solution of van Wees and Cloetingh (1994). However, it is quite memory-intensive, so unless the user has a computer with a very large amount of memory and quite a lot of time to wait, they should ensure that they use a grid spacing that is appropriate to solve the problem at hand. Flexural isostatic solutions act to smooth inputs over a given flexural wavelength (see , so if an appropriate solution resolution is chosen, the calculated flexural response can be interpolated to a higher resolution without fear of aliasing.
-<p>
-The flexural solution is generated for the current computational region, so be sure to check <em>g.region</em> before running the model!
-<p>
-<!--Add equation or a link to paper, etc.-->
-<b>input</b> is a 2-D array of loads in a GRASS raster. These are in units of stress, and equal the density of the material times the acceleration due to gravity times the thickness of the column. This is not affected by what you choose for <b>g</b>, later: it is pre-calculated by the user.
-<p>
-<b>te</b>, written in standard text as T<sub>e</sub>, is the lithospheric elastic thickness.
-<p>
-Several boundary conditions are available, and these depend on if the solution method is finite differece (FD) or superposition of analytical solutions (SAS). In the latter, it is assumed that there are no loads outside of those that are explicitly listed, so the boundary conditions are "NoOutsideLoads". As this is the implicit case, the boundary conditions all default to this.
-<p>
-The finite difference boundary conditions are a bit more complicated, but are largely self-explanitory:
-<p>
- <dl>
-  <dt><b>0Displacement0Slope</b></dt>
-  <dd>0-displacement-0-slope boundary condition</dd>
-  <dt><b>0Moment0Shear</b></dt>
-  <dd>"Broken plate" boundary condition: second and third derivatives of vertical displacement are 0. This is like the end of a diving board.</dd>
-  <dt><b>0Slope0Shear</b></dt>
-  <dd>First and third derivatives of vertical displacement are zero. While this does not lend itsellf so easily to physical meaning, it is helpful to aid in efforts to make boundary condition effects disappear (i.e. to emulate the NoOutsideLoads cases)</dd>
-  <dt><b>Mirror</b></dt>
-  <dd>Load and elastic thickness structures reflected at boundary.</dd>
-  <dt><b>Periodic</b></dt>
-  <dd>"Wrap-around" boundary condition: must be applied to both North and South and/or both East and West. This causes, for example, the edge of the eastern and western limits of the domain to act like they are next to each other in an infinite loop.</dd>
+The parameter <b>method</b> selects the solution technique:
+
+<dl>
+  <dt><b>FD</b> &mdash; Finite Difference</dt>
+  <dd>Typically faster for large grids and supports spatially variable elastic thickness via the van Wees and Cloetingh (1994) stencil. Memory requirements scale with grid size; choose a grid spacing appropriate for the flexural wavelength of the problem. Supports all boundary conditions and in-plane stresses.</dd>
+  <dt><b>FFT</b> &mdash; Fast Fourier Transform (spectral)</dt>
+  <dd>Exact for periodic boundary conditions; uses a zero-padded approximation for all other boundary conditions (equivalent to NoOutsideLoads). Requires a scalar (uniform) elastic thickness. Supports in-plane stresses. Fastest option for large uniform-Te grids.</dd>
+  <dt><b>SAS</b> &mdash; Superposition of Analytical Solutions</dt>
+  <dd>Each grid cell is treated as a point load and its deflection computed analytically. Best for smaller grids or when accuracy near individual loads matters. Requires scalar elastic thickness.</dd>
 </dl>
 <p>
-All of these boundary conditions may be combined in an way, with the exception of the note for periodic boundary conditions. If one does not want the boundary conditions to affect the solutions, it is recommended that one places the boundaries at lesat one flexural wavelength away from the load.
+The flexural solution is generated for the current computational region, so be sure to check <em>g.region</em> before running the module.
 <p>
-<em>r.flexure</em> may be run in latitude/longitude coordinates (with the "-l" flag), but its grid constraint is that it can have only one <i>dx</i> and one <i>dy</i> for the entire domain. Thus, it chooses the average <i>dx</i> at the midpoint between the northernmost and southernmost latitudes for which the calculations are made. This assumption can break down at the poles, where the East&ndash;West dimension rapidly diminishes.
+<b>input</b> is a 2-D raster of loads in units of stress [Pa], equal to the load material density times gravitational acceleration times column thickness. This is computed by the user prior to running the module, and is not affected by the <b>g</b> parameter below (which applies only to the restoring isostatic force).
 <p>
-<!--Add figures and example from paper once that is out-->
-<!--And examples-->
-<!--Add runtime fig.-->
-The <a href="http://csdms.colorado.edu">Community Surface Dynamics Modeling System</a>, into which <b>gFlex</b> is integrated, is a community-driven effort to build an open-source modeling infrastructure for Earth-surface processes.
+<b>te</b>, written in standard notation as T<sub>e</sub>, is the lithospheric elastic thickness. It may be either a scalar value or (for FD only) a raster of spatially variable elastic thickness.
+<p>
+<b>Boundary conditions</b> govern the behavior of the plate at the domain edges. Their meaning depends on the solution method:
+<p>
+For <b>SAS</b>, all boundary conditions default to <b>NoOutsideLoads</b>, which assumes the plate extends to infinity beyond the domain and that no loads act there.
+<p>
+For <b>FFT</b>, set all boundary conditions to <b>Periodic</b> for an exact periodic transform (loads wrap around from one edge to the opposite). Any other value selects the zero-padded (NoOutsideLoads) approximation.
+<p>
+For <b>FD</b>, the available boundary conditions are:
+<dl>
+  <dt><b>0Displacement0Slope</b></dt>
+  <dd>Zero displacement and zero slope at the boundary. Use for a plate clamped to a rigid wall, or when the far-field deflection is known to be zero. Note: if the nearest loaded cell is within one flexural wavelength of this boundary, the forebulge may be suppressed; gFlex will issue a warning.</dd>
+  <dt><b>0Moment0Shear</b></dt>
+  <dd>"Free broken end" (e.g., rifted margin): the second and third derivatives of displacement are zero. Equivalent to the end of a free-hanging diving board.</dd>
+  <dt><b>0Slope0Shear</b></dt>
+  <dd>First and third derivatives of displacement are zero. Used to approximate a symmetric boundary.</dd>
+  <dt><b>Mirror</b></dt>
+  <dd>Loads and elastic thickness are reflected at the boundary.</dd>
+  <dt><b>Periodic</b></dt>
+  <dd>Wrap-around: the eastern and western edges (or northern and southern) are treated as adjacent. Must be applied in matched pairs (both East&ndash;West or both North&ndash;South).</dd>
+</dl>
+<p>
+Boundary conditions may be mixed freely, except that Periodic must be applied symmetrically. To minimize boundary effects, place domain edges at least one flexural wavelength from the nearest load.
+<p>
+<b>In-plane stresses</b> (<b>sigma_xx</b>, <b>sigma_yy</b>, <b>sigma_xy</b>) add membrane (tectonic) stress terms to the governing equation, following the full variable-D formulation. These are supported by the FD and FFT solvers and default to 0 (no in-plane stress). Positive values are tensional.
+<p>
+The <b>-p flag</b> enables automatic domain padding for variable-Te FD runs. When elastic thickness varies spatially, abrupt rigidity gradients at domain edges can produce spurious deflections via the D-derivative terms in the FD stencil. The padding flag calls <tt>gflex.pad_domain()</tt> to extend the domain by one flexural wavelength on each side (with a smoothly tapered Te transition), solves on the padded domain, then trims the output back to the original GRASS region. Ignored for scalar Te or non-FD methods.
+<p>
+<em>r.flexure</em> may be run in latitude/longitude coordinates with the <b>-l</b> flag. Because the module requires a single <i>dx</i> and <i>dy</i>, it computes <i>dx</i> at the midpoint latitude of the domain. This approximation degrades near the poles.
 
 <h2>SEE ALSO</h2>
 
@@ -49,15 +59,13 @@ The <a href="http://csdms.colorado.edu">Community Surface Dynamics Modeling Syst
 
 <h2>REFERENCES</h2>
 
-Wickert, A. D. (2015), Open-source modular solutions for flexural isostasy: gFlex v1.0, <i>Geoscientific Model Development Discussions</i>, <i>8</i>(6), 4245&ndash;4292, doi:10.5194/gmdd-8-4245-2015.
+Wickert, A. D. (2016), Open-source modular solutions for flexural isostasy: gFlex v1.0, <i>Geoscientific Model Development</i>, <i>9</i>(3), 997&ndash;1017, doi:<a href="https://doi.org/10.5194/gmd-9-997-2016">10.5194/gmd-9-997-2016</a>.
 <p>
-Wickert, A. D., G. E. Tucker, E. W. H. Hutton, B. Yan, and S. D. Peckham (2011), <a href="http://csdms.colorado.edu/wiki/CSDMS_2011_annual_meeting_Andrew_Wickert">Feedbacks between surface processes and flexural isostasy: a motivation for coupling models</a>, in <i>CSDMS 2011 Meeting: Impact of time and process scales</i>, Student Keynote, Boulder, CO.
-<p>
-van Wees, J. D., and S. Cloetingh (1994), A Finite-Difference Technique to Incorporate Spatial Variations In Rigidity and Planar Faults Into 3-D Models For Lithospheric Flexure, <i>Geophysical Journal International</i>, <i>117</i>(1), 179&ndash;195, doi:10.1111/j.1365-246X.1994.tb03311.x.
+van Wees, J. D., and S. Cloetingh (1994), A Finite-Difference Technique to Incorporate Spatial Variations In Rigidity and Planar Faults Into 3-D Models For Lithospheric Flexure, <i>Geophysical Journal International</i>, <i>117</i>(1), 179&ndash;195, doi:<a href="https://doi.org/10.1111/j.1365-246X.1994.tb03311.x">10.1111/j.1365-246X.1994.tb03311.x</a>.
 
 <h2>AUTHOR</h2>
 
-Andrew D. Wickert<br>
+Andrew D. Wickert
 
 <!--
 <p>
