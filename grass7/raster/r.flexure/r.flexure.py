@@ -268,9 +268,6 @@ def main():
     if flex.Method == "FD":
         flex.Solver = options["solver"]
         flex.iterative_ConvergenceTolerance = float(options["tolerance"])
-        # Always use the van Wees and Cloetingh (1994) solution type.
-        # It is the best.
-        flex.PlateSolutionType = "vWC1994"
     # Parameters that are often changed for the solution
     flex.qs = garray.array(options["input"])
     # Elastic thickness
