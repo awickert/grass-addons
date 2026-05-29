@@ -379,11 +379,6 @@ def main():
         "r.colors", map=options["output"], color="differences", quiet=True
     )
 
-    # Reinstate this with a flag or output filename
-    # But I think better to let interpolation happen a posteriori
-    # So the user knows what the solution is and what it isn't
-    # grass.run_command('r.resamp.interp', input=output, output=output + '_interp', method='lanczos', overwrite=True, quiet=True)
-    # grass.run_command('r.colors', map=output + '_interp', color='rainbow', quiet=True)#, flags='e')
 
 
 def install_dependencies():
