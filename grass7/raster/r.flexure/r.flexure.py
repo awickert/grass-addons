@@ -272,16 +272,12 @@ def main():
         # It is the best.
         flex.PlateSolutionType = "vWC1994"
     # Parameters that are often changed for the solution
-    qs = options["input"]
-    flex.qs = garray.array()
-    flex.qs.read(qs)
+    flex.qs = garray.array(options["input"])
     # Elastic thickness
     try:
         flex.Te = float(options["te"])
-    except Exception:
-        flex.Te = garray.array()
-        flex.Te.read(options["te"])
-        flex.Te = np.array(flex.Te)
+    except ValueError:
+        flex.Te = np.array(garray.array(options["te"]))
     if options["te_units"] == "km":
         flex.Te *= 1000
     elif options["te_units"] == "m":
