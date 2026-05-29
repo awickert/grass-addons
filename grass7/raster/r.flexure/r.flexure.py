@@ -85,6 +85,7 @@
 # %  options: direct, iterative
 # %  answer: direct
 # %  required : no
+# %  guisection: Solution
 # %end
 
 # %option
@@ -93,6 +94,7 @@
 # %  description: Convergence tolerance (relative residual) for iterative solver (FD only)
 # %  answer: 1E-3
 # %  required : no
+# %  guisection: Solution
 # %end
 
 # %option
@@ -102,6 +104,7 @@
 # %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 # %  answer: NoOutsideLoads
 # %  required : no
+# %  guisection: Boundary conditions
 # %end
 
 # %option
@@ -111,6 +114,7 @@
 # %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 # %  answer: NoOutsideLoads
 # %  required : no
+# %  guisection: Boundary conditions
 # %end
 
 # %option
@@ -120,6 +124,7 @@
 # %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 # %  answer: NoOutsideLoads
 # %  required : no
+# %  guisection: Boundary conditions
 # %end
 
 # %option
@@ -129,6 +134,7 @@
 # %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 # %  answer: NoOutsideLoads
 # %  required : no
+# %  guisection: Boundary conditions
 # %end
 
 # %option
@@ -137,6 +143,7 @@
 # %  description: gravitational acceleration at surface [m/s^2]
 # %  answer: 9.8
 # %  required : no
+# %  guisection: Material properties
 # %end
 
 # %option
@@ -145,6 +152,7 @@
 # %  description: Young's Modulus [Pa]
 # %  answer: 65E9
 # %  required : no
+# %  guisection: Material properties
 # %end
 
 # %option
@@ -153,6 +161,7 @@
 # %  description: Poisson's ratio
 # %  answer: 0.25
 # %  required : no
+# %  guisection: Material properties
 # %end
 
 # %option
@@ -161,6 +170,7 @@
 # %  description: Density of material that fills flexural depressions [kg/m^3]
 # %  answer: 0
 # %  required : no
+# %  guisection: Material properties
 # %end
 
 # %option
@@ -169,6 +179,7 @@
 # %  description: Mantle density [kg/m^3]
 # %  answer: 3300
 # %  required : no
+# %  guisection: Material properties
 # %end
 
 # %option
@@ -177,6 +188,7 @@
 # %  description: In-plane normal stress in the x-direction [Pa]; FD and FFT only
 # %  answer: 0
 # %  required : no
+# %  guisection: In-plane stresses
 # %end
 
 # %option
@@ -185,6 +197,7 @@
 # %  description: In-plane normal stress in the y-direction [Pa]; FD and FFT only
 # %  answer: 0
 # %  required : no
+# %  guisection: In-plane stresses
 # %end
 
 # %option
@@ -193,6 +206,7 @@
 # %  description: In-plane shear stress [Pa]; FD and FFT only
 # %  answer: 0
 # %  required : no
+# %  guisection: In-plane stresses
 # %end
 
 ##################
@@ -302,9 +316,8 @@ def main():
     if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
         if not grass.overwrite():
             grass.fatal(
-                "Raster map '"
-                + options["output"]
-                + "' already exists. Use '--o' to overwrite."
+                _("Raster map <%s> already exists. Use '--o' to overwrite.")
+                % options["output"]
             )
 
     # Get grid spacing from GRASS
@@ -312,23 +325,24 @@ def main():
     if grass.region_env()[6] == "3":
         if latlon_override:
             if flex.Verbose:
-                print("Latitude/longitude grid.")
-                print("Based on r_Earth = 6371 km")
-                print("Setting y-resolution [m] to 111,195 * [degrees]")
+                grass.message(_("Latitude/longitude grid."))
+                grass.message(_("Based on r_Earth = 6371 km"))
+                grass.message(_("Setting y-resolution [m] to 111,195 * [degrees]"))
             flex.dy = grass.region()["nsres"] * 111195.0
             NSmid = (grass.region()["n"] + grass.region()["s"]) / 2.0
             dx_at_mid_latitude = (
                 (3.14159 / 180.0) * 6371000.0 * np.cos(np.deg2rad(NSmid))
             )
             if flex.Verbose:
-                print(
-                    "Setting x-resolution [m] to "
-                    + "%.2f" % dx_at_mid_latitude
-                    + " * [degrees]"
+                grass.message(
+                    _("Setting x-resolution [m] to %.2f * [degrees]")
+                    % dx_at_mid_latitude
                 )
             flex.dx = grass.region()["ewres"] * dx_at_mid_latitude
         else:
-            grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
+            grass.fatal(
+                _("Need the '-l' flag to enable lat/lon solution approximation.")
+            )
     # Otherwise straightforward
     else:
         flex.dx = grass.region()["ewres"]
@@ -339,11 +353,14 @@ def main():
     if auto_pad:
         if flex.Method != "FD":
             grass.warning(
-                "Domain padding (-p) is only supported for the FD method; ignoring."
+                _("Domain padding (-p) is only supported for the FD method; ignoring.")
             )
         elif not isinstance(flex.Te, np.ndarray):
             grass.warning(
-                "Domain padding (-p) is only useful for variable (raster) Te; ignoring."
+                _(
+                    "Domain padding (-p) is only useful for variable (raster) Te;"
+                    " ignoring."
+                )
             )
         else:
             Te_pad, qs_pad, pad_width = gflex.pad_domain(
@@ -360,9 +377,10 @@ def main():
             flex.Te = Te_pad
             flex.qs = qs_pad
             if flex.Verbose:
-                print("Domain padded by %d cells on each side." % pad_width)
+                grass.message(_("Domain padded by %d cells on each side.") % pad_width)
 
     # CALCULATE!
+    grass.message(_("Computing flexural deflections..."))
     flex.initialize()
     flex.run()
     flex.finalize()
