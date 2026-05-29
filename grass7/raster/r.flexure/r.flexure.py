@@ -9,7 +9,7 @@
 #               set of loads and with a given elastic thickness (scalar
 #               or array)
 #
-# COPYRIGHT:    (c) 2012, 2014, 2015 Andrew Wickert
+# COPYRIGHT:    (c) 2012, 2014, 2015, 2026 Andrew Wickert
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -18,9 +18,7 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
-#         (should be downloaded automatically along with the module)
-#         github repository: https://github.com/awickert/gFlex
+#      -  gFlex: https://github.com/awickert/gFlex
 
 # More information
 # Started 11 March 2012 as a GRASS interface for Flexure (now gFlex)
@@ -56,7 +54,7 @@
 #%option G_OPT_R_INPUT
 #%  key: te
 #%  type: string
-#%  description: Elastic thicnkess: scalar or raster; unis chosen in "te_units"
+#%  description: Elastic thickness: scalar or raster; units chosen in "te_units"
 #%  required : yes
 #%end
 
@@ -78,7 +76,7 @@
 #%option
 #%  key: solver
 #%  type: string
-#%  description: Solver type
+#%  description: Solver type (FD method only)
 #%  options: direct, iterative
 #%  answer: direct
 #%  required : no
@@ -87,7 +85,7 @@
 #%option
 #%  key: tolerance
 #%  type: double
-#%  description: Convergence tolerance (between iterations) for iterative solver
+#%  description: Convergence tolerance (relative residual) for iterative solver (FD only)
 #%  answer: 1E-3
 #%  required : no
 #%end
@@ -95,7 +93,7 @@
 #%option
 #%  key: northbc
 #%  type: string
-#%  description: Northern boundary condition
+#%  description: Northern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
 #%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
@@ -104,7 +102,7 @@
 #%option
 #%  key: southbc
 #%  type: string
-#%  description: Southern boundary condition
+#%  description: Southern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
 #%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
@@ -113,7 +111,7 @@
 #%option
 #%  key: westbc
 #%  type: string
-#%  description: Western boundary condition
+#%  description: Western boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
 #%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
@@ -122,7 +120,7 @@
 #%option
 #%  key: eastbc
 #%  type: string
-#%  description: Eastern boundary condition
+#%  description: Eastern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
 #%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
@@ -198,10 +196,10 @@ def main():
     # we will actually do the computation
     try:
         import gflex
-    except:
+    except Exception:
         print("")
         print("MODULE IMPORT ERROR.")
-        print("In order to run r.flexure or g.flexure, you must download and install")
+        print("In order to run r.flexure, you must download and install")
         print("gFlex. The most recent development version is available from")
         print("https://github.com/awickert/gFlex.")
         print("Installation instructions are available on the page.")
@@ -232,8 +230,8 @@ def main():
     # Elastic thickness
     try:
         flex.Te = float(options["te"])
-    except:
-        flex.Te = garray.array()  # FlexureTe is the one that is used by Flexure
+    except Exception:
+        flex.Te = garray.array()
         flex.Te.read(options["te"])
         flex.Te = np.array(flex.Te)
     if options["te_units"] == "km":
