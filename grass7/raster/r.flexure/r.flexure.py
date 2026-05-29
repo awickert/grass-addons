@@ -234,6 +234,21 @@ def main():
         print("Installation instructions are available on the page.")
         grass.fatal("Software dependency must be installed.")
 
+    # Require gFlex >= 2.0.0 for FFT solver, in-plane stresses, and pad_domain
+    def _version_tuple(v):
+        try:
+            return tuple(int(x) for x in v.split(".")[:3])
+        except (ValueError, AttributeError):
+            return (0, 0, 0)
+
+    _MIN_GFLEX = (2, 0, 0)
+    if _version_tuple(gflex.__version__) < _MIN_GFLEX:
+        grass.fatal(
+            "r.flexure requires gFlex >= 2.0.0; installed version is "
+            + gflex.__version__
+            + ". Please upgrade: https://github.com/awickert/gFlex"
+        )
+
     # This code is for 2D flexural isostasy
     flex = gflex.F2D()
     # And show that it is coming from GRASS GIS
