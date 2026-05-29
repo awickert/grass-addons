@@ -51,6 +51,67 @@ The <b>-p flag</b> enables automatic domain padding for variable-Te FD runs. Whe
 <p>
 <em>r.flexure</em> may be run in latitude/longitude coordinates with the <b>-l</b> flag. Because the module requires a single <i>dx</i> and <i>dy</i>, it computes <i>dx</i> at the midpoint latitude of the domain. This approximation degrades near the poles.
 
+<h2>EXAMPLES</h2>
+
+<h3>Asymmetric volcanic load on a laterally heterogeneous lithosphere</h3>
+
+<p>
+This example is based on the scenario in the
+<a href="https://gflex.readthedocs.io">gFlex documentation</a>:
+a circular volcanic edifice on a lithosphere whose elastic thickness
+rises from 15&nbsp;km in the west to 35&nbsp;km in the east across a
+sigmoid transition. The thinner western lithosphere deflects more steeply
+and over a shorter wavelength; the stiffer eastern side produces a broader
+depression with a more prominent forebulge.
+</p>
+
+<div class="code"><pre>
+# Domain: 750 × 750 km at 5 km resolution (projected CRS required)
+g.region n=750000 s=0 e=750000 w=0 res=5000
+
+# Sigmoid elastic thickness: 15 km (west) to 35 km (east)
+# tanh is unavailable in r.mapcalc; use the equivalent logistic form:
+#   0.5*(1 + tanh(u)) = 1/(1 + exp(-2u)), u = (x - cx)/(8*dx)
+r.mapcalc expression="te_sigmoid = 15000 + 20000 / (1 + exp(-(x()-375000) / 20000))"
+
+# Circular volcanic load (30 MPa) within 61.3 km of the domain centre
+# 30 MPa ≈ 1055 m of mantle-density rock; radius is 1.5 × the flexural parameter α
+r.mapcalc expression="load_volcano = if(sqrt((x()-375000)^2+(y()-375000)^2) &lt;= 61300, 3e7, 0)"
+
+# FD flexural deflection; 0Moment0Shear = free broken-end boundary condition
+r.flexure method=FD \
+    input=load_volcano \
+    te=te_sigmoid te_units=m \
+    output=w_volcano \
+    northbc=0Moment0Shear southbc=0Moment0Shear \
+    eastbc=0Moment0Shear  westbc=0Moment0Shear
+
+d.rast w_volcano
+d.legend w_volcano
+</pre></div>
+
+<p>
+The result shows roughly 54&nbsp;m of central subsidence and about 1&nbsp;m
+of forebulge uplift. The depression is deeper and narrower on the soft
+(thin T<sub>e</sub>) western side and broader with a clearer forebulge
+on the stiff eastern side.
+</p>
+
+<p>
+With the <b>-p</b> flag, the domain is automatically padded before solving
+to reduce artefacts caused by the T<sub>e</sub> gradient reaching the
+domain edge:
+</p>
+
+<div class="code"><pre>
+r.flexure -p method=FD \
+    input=load_volcano \
+    te=te_sigmoid te_units=m \
+    output=w_volcano_padded \
+    northbc=0Moment0Shear southbc=0Moment0Shear \
+    eastbc=0Moment0Shear  westbc=0Moment0Shear
+</pre></div>
+
 <h2>SEE ALSO</h2>
 
 <em>
