@@ -36,6 +36,11 @@
 #%  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
 #%end
 
+#%flag
+#%  key: p
+#%  description: Auto-pad domain for variable-Te FD runs (reduces boundary effects from Te gradients at edges; trims output back to original region)
+#%end
+
 #%option
 #%  key: method
 #%  type: string
@@ -236,6 +241,7 @@ def main():
 
     # Flags
     latlon_override = flags["l"]
+    auto_pad = flags["p"]
 
     # Inputs
     # Solution selection
@@ -323,15 +329,48 @@ def main():
         flex.dx = grass.region()["ewres"]
         flex.dy = grass.region()["nsres"]
 
+    # Auto-pad the domain if requested (FD with variable Te only)
+    pad_width = 0
+    if auto_pad:
+        if flex.Method != "FD":
+            grass.warning(
+                "Domain padding (-p) is only supported for the FD method; ignoring."
+            )
+        elif not isinstance(flex.Te, np.ndarray):
+            grass.warning(
+                "Domain padding (-p) is only useful for variable (raster) Te; ignoring."
+            )
+        else:
+            Te_pad, qs_pad, pad_width = gflex.pad_domain(
+                flex.Te,
+                np.array(flex.qs),
+                flex.dx,
+                dy=flex.dy,
+                E=flex.E,
+                nu=flex.nu,
+                rho_m=flex.rho_m,
+                rho_fill=flex.rho_fill,
+                g=flex.g,
+            )
+            flex.Te = Te_pad
+            flex.qs = qs_pad
+            if flex.Verbose:
+                print("Domain padded by %d cells on each side." % pad_width)
+
     # CALCULATE!
     flex.initialize()
     flex.run()
     flex.finalize()
 
+    # Trim padding from output if it was applied
+    w = flex.w
+    if pad_width > 0:
+        w = w[pad_width:-pad_width, pad_width:-pad_width]
+
     # Write to GRASS
     # Create a new garray buffer and write to it
     outbuffer = garray.array()  # Instantiate output buffer
-    outbuffer[...] = flex.w
+    outbuffer[...] = w
     outbuffer.write(
         options["output"], overwrite=grass.overwrite()
     )  # Write it with the desired name
