@@ -218,8 +218,7 @@ def main():
     flex.Method = options["method"]
     if flex.Method == "FD":
         flex.Solver = options["solver"]
-        if flex.Solver:
-            flex.ConvergenceTolerance = options["tolerance"]
+        flex.iterative_ConvergenceTolerance = float(options["tolerance"])
         # Always use the van Wees and Cloetingh (1994) solution type.
         # It is the best.
         flex.PlateSolutionType = "vWC1994"
@@ -238,8 +237,6 @@ def main():
         flex.Te *= 1000
     elif options["te_units"] == "m":
         pass
-    # No "else"; shouldn't happen
-    flex.rho_fill = float(options["rho_fill"])
     # Parameters that often stay at their default values
     flex.g = float(options["g"])
     flex.E = float(
@@ -247,9 +244,7 @@ def main():
     )  # Can't just use "E" because reserved for "east", I think
     flex.nu = float(options["nu"])
     flex.rho_m = float(options["rho_m"])
-    # Solver type and iteration tolerance
-    flex.Solver = options["solver"]
-    flex.ConvergenceTolerance = float(options["tolerance"])
+    flex.rho_fill = float(options["rho_fill"])
     # Boundary conditions
     flex.BC_N = options["northbc"]
     flex.BC_S = options["southbc"]
