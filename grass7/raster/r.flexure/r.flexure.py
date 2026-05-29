@@ -220,34 +220,24 @@ def main():
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
 
-    # GFLEX
-    # try to import gflex only after we know that
-    # we will actually do the computation
+    # Import gFlex only after we know we will actually do the computation
     try:
         import gflex
-    except Exception:
-        print("")
-        print("MODULE IMPORT ERROR.")
-        print("In order to run r.flexure, you must download and install")
-        print("gFlex. The most recent development version is available from")
-        print("https://github.com/awickert/gFlex.")
-        print("Installation instructions are available on the page.")
-        grass.fatal("Software dependency must be installed.")
-
-    # Require gFlex >= 2.0.0 for FFT solver, in-plane stresses, and pad_domain
-    def _version_tuple(v):
-        try:
-            return tuple(int(x) for x in v.split(".")[:3])
-        except (ValueError, AttributeError):
-            return (0, 0, 0)
-
-    _MIN_GFLEX = (2, 0, 0)
-    if _version_tuple(gflex.__version__) < _MIN_GFLEX:
+    except ImportError:
         grass.fatal(
-            "r.flexure requires gFlex >= 2.0.0; installed version is "
-            + gflex.__version__
-            + ". Please upgrade: https://github.com/awickert/gFlex"
+            _(
+                "Cannot import gFlex. Install it from source with:\n"
+                "  pip install -e /path/to/gFlex\n"
+                "or see https://github.com/awickert/gFlex for details."
+            )
         )
+
+    # TODO: restore minimum-version guard when gFlex 2.0.0 is released:
+    # if tuple(int(x) for x in gflex.__version__.split(".")[:3]) < (2, 0, 0):
+    #     grass.fatal(
+    #         _("r.flexure requires gFlex >= 2.0.0; installed: ")
+    #         + gflex.__version__
+    #     )
 
     # This code is for 2D flexural isostasy
     flex = gflex.F2D()

@@ -72,22 +72,16 @@ cols: 10
 
 
 def _gflex_ok():
-    """Return True if gFlex >= 2.0.0 is importable."""
+    """Return True if gFlex is importable."""
     try:
-        import gflex
+        import gflex  # noqa: F401
 
-        def _ver(v):
-            try:
-                return tuple(int(x) for x in v.split(".")[:3])
-            except (ValueError, AttributeError):
-                return (0, 0, 0)
-
-        return _ver(gflex.__version__) >= (2, 0, 0)
+        return True
     except ImportError:
         return False
 
 
-@unittest.skipUnless(_gflex_ok(), "gFlex >= 2.0.0 not available")
+@unittest.skipUnless(_gflex_ok(), "gFlex not available")
 class TestRFlexure(TestCase):
     """Test r.flexure with synthetic raster data (no NC dataset required)."""
 
