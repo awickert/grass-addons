@@ -166,6 +166,30 @@
 #%  required : no
 #%end
 
+#%option
+#%  key: sigma_xx
+#%  type: double
+#%  description: In-plane normal stress in the x-direction [Pa]; FD and FFT only
+#%  answer: 0
+#%  required : no
+#%end
+
+#%option
+#%  key: sigma_yy
+#%  type: double
+#%  description: In-plane normal stress in the y-direction [Pa]; FD and FFT only
+#%  answer: 0
+#%  required : no
+#%end
+
+#%option
+#%  key: sigma_xy
+#%  type: double
+#%  description: In-plane shear stress [Pa]; FD and FFT only
+#%  answer: 0
+#%  required : no
+#%end
+
 ##################
 # IMPORT MODULES #
 ##################
@@ -245,6 +269,10 @@ def main():
     flex.nu = float(options["nu"])
     flex.rho_m = float(options["rho_m"])
     flex.rho_fill = float(options["rho_fill"])
+    # In-plane stresses (FD and FFT only; gFlex ignores for other methods)
+    flex.sigma_xx = float(options["sigma_xx"])
+    flex.sigma_yy = float(options["sigma_yy"])
+    flex.sigma_xy = float(options["sigma_xy"])
     # Boundary conditions
     flex.BC_N = options["northbc"]
     flex.BC_S = options["southbc"]
