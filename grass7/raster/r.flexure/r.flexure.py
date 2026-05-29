@@ -39,8 +39,8 @@
 #%option
 #%  key: method
 #%  type: string
-#%  description: Solution method: Finite Diff. or Superpos. of analytical sol'ns
-#%  options: FD, SAS
+#%  description: Solution method: FD (finite difference), FFT (spectral, scalar Te only), or SAS (superposition of analytical solutions)
+#%  options: FD, FFT, SAS
 #%  required : yes
 #%end
 
