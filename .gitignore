@@ -1,5 +1,7 @@
 OBJ.*
 *.pyc
+testreport/
+test_keyvalue_result.txt
 # grass7/misc/m.eigensystem
 *.o
 *.tmp.html
