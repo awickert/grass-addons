@@ -334,8 +334,8 @@ def main():
         if flex.method == "sas":
             grass.warning(
                 _(
-                    "Domain padding (-p) is not applicable to SAS"
-                    " (assumes infinite plate with no outside loads); ignoring."
+                    "Domain padding (-p) is not necessary for SAS:"
+                    " it already assumes an infinite plate with no outside loads."
                 )
             )
         elif flex.method == "fd" and isinstance(flex.T_e, np.ndarray):
