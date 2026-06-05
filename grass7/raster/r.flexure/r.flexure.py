@@ -79,30 +79,11 @@
 # %end
 
 # %option
-# %  key: solver
-# %  type: string
-# %  description: Solver type (FD method only)
-# %  options: direct, iterative
-# %  answer: direct
-# %  required : no
-# %  guisection: Solution
-# %end
-
-# %option
-# %  key: tolerance
-# %  type: double
-# %  description: Convergence tolerance (relative residual) for iterative solver (FD only)
-# %  answer: 1E-3
-# %  required : no
-# %  guisection: Solution
-# %end
-
-# %option
 # %  key: northbc
 # %  type: string
-# %  description: Northern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-# %  answer: NoOutsideLoads
+# %  description: Northern boundary condition (FD: zero_displacement_zero_slope/zero_moment_zero_shear/zero_slope_zero_shear/mirror/periodic; FFT: periodic for exact, anything else for zero-padded; SAS: no_outside_loads)
+# %  options: zero_displacement_zero_slope, zero_moment_zero_shear, zero_slope_zero_shear, mirror, periodic, no_outside_loads
+# %  answer: no_outside_loads
 # %  required : no
 # %  guisection: Boundary conditions
 # %end
@@ -110,9 +91,9 @@
 # %option
 # %  key: southbc
 # %  type: string
-# %  description: Southern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-# %  answer: NoOutsideLoads
+# %  description: Southern boundary condition (FD: zero_displacement_zero_slope/zero_moment_zero_shear/zero_slope_zero_shear/mirror/periodic; FFT: periodic for exact, anything else for zero-padded; SAS: no_outside_loads)
+# %  options: zero_displacement_zero_slope, zero_moment_zero_shear, zero_slope_zero_shear, mirror, periodic, no_outside_loads
+# %  answer: no_outside_loads
 # %  required : no
 # %  guisection: Boundary conditions
 # %end
@@ -120,9 +101,9 @@
 # %option
 # %  key: westbc
 # %  type: string
-# %  description: Western boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-# %  answer: NoOutsideLoads
+# %  description: Western boundary condition (FD: zero_displacement_zero_slope/zero_moment_zero_shear/zero_slope_zero_shear/mirror/periodic; FFT: periodic for exact, anything else for zero-padded; SAS: no_outside_loads)
+# %  options: zero_displacement_zero_slope, zero_moment_zero_shear, zero_slope_zero_shear, mirror, periodic, no_outside_loads
+# %  answer: no_outside_loads
 # %  required : no
 # %  guisection: Boundary conditions
 # %end
@@ -130,9 +111,9 @@
 # %option
 # %  key: eastbc
 # %  type: string
-# %  description: Eastern boundary condition (FD: 0Displacement0Slope/0Moment0Shear/0Slope0Shear/Mirror/Periodic; FFT: Periodic for exact, anything else for zero-padded; SAS: NoOutsideLoads)
-# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-# %  answer: NoOutsideLoads
+# %  description: Eastern boundary condition (FD: zero_displacement_zero_slope/zero_moment_zero_shear/zero_slope_zero_shear/mirror/periodic; FFT: periodic for exact, anything else for zero-padded; SAS: no_outside_loads)
+# %  options: zero_displacement_zero_slope, zero_moment_zero_shear, zero_slope_zero_shear, mirror, periodic, no_outside_loads
+# %  answer: no_outside_loads
 # %  required : no
 # %  guisection: Boundary conditions
 # %end
