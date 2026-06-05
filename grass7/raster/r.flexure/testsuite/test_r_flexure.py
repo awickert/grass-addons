@@ -25,6 +25,7 @@ Run inside a GRASS session (e.g., with --tmp-location XY):
 
 import unittest
 
+import grass.script as grass
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -240,6 +241,92 @@ class TestRFlexure(TestCase):
             eastbc="mirror",
             westbc="mirror",
         )
+
+    def test_fd_zero_displacement_zero_slope_bc(self):
+        """FD method with zero_displacement_zero_slope boundary conditions."""
+        self._run_and_check(
+            "test_rflex_fd_zdzs",
+            method="FD",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            northbc="zero_displacement_zero_slope",
+            southbc="zero_displacement_zero_slope",
+            eastbc="zero_displacement_zero_slope",
+            westbc="zero_displacement_zero_slope",
+        )
+
+    def test_fd_zero_slope_zero_shear_bc(self):
+        """FD method with zero_slope_zero_shear boundary conditions."""
+        self._run_and_check(
+            "test_rflex_fd_zczs",
+            method="FD",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            northbc="zero_slope_zero_shear",
+            southbc="zero_slope_zero_shear",
+            eastbc="zero_slope_zero_shear",
+            westbc="zero_slope_zero_shear",
+        )
+
+    def test_deflection_is_downward(self):
+        """SAS deflection under a positive load is negative; checks sign and plausibility.
+
+        This is an interface-layer test: it verifies that qs and flex.w are
+        passed and read with the correct sign, and that the deflection magnitude
+        is physically plausible (not orders-of-magnitude wrong due to a unit
+        conversion bug in Te, dx, or dy).
+        """
+        output = "test_rflex_sign"
+        try:
+            self.assertModule(
+                "r.flexure",
+                method="SAS",
+                input=self.load,
+                te="10000",
+                te_units="m",
+                output=output,
+            )
+            stats = grass.parse_command("r.univar", map=output, flags="g")
+            min_w = float(stats["min"])
+            self.assertLess(min_w, 0,
+                            "Deflection under a downward load must be negative")
+            self.assertGreater(min_w, -1000,
+                               "Deflection magnitude must be physically plausible (< 1 km)")
+        finally:
+            self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
+
+    def test_te_km_m_equivalence(self):
+        """Te=10 km and Te=10000 m must produce identical deflections.
+
+        Interface-layer test: verifies that the km→m conversion (Te *= 1000)
+        is applied correctly.
+        """
+        out_km = "test_rflex_te_km"
+        out_m = "test_rflex_te_m"
+        try:
+            self.assertModule(
+                "r.flexure", method="SAS", input=self.load,
+                te="10", te_units="km", output=out_km,
+            )
+            self.assertModule(
+                "r.flexure", method="SAS", input=self.load,
+                te="10000", te_units="m", output=out_m,
+            )
+            stats_km = grass.parse_command("r.univar", map=out_km, flags="g")
+            stats_m = grass.parse_command("r.univar", map=out_m, flags="g")
+            self.assertAlmostEqual(
+                float(stats_km["min"]), float(stats_m["min"]), places=10,
+                msg="Te in km and m must give identical min deflection",
+            )
+            self.assertAlmostEqual(
+                float(stats_km["mean"]), float(stats_m["mean"]), places=10,
+                msg="Te in km and m must give identical mean deflection",
+            )
+        finally:
+            self.runModule("g.remove", flags="f", type="raster",
+                           name=",".join([out_km, out_m]), quiet=True)
 
 
 @unittest.skipUnless(_gflex_ok(), "gFlex not available")
