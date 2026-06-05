@@ -83,15 +83,6 @@ The <b>-p flag</b> enables automatic domain padding for variable-Te FD runs. Whe
 <p>
 <em>r.flexure</em> may be run in latitude/longitude coordinates with the <b>-l</b> flag. Because the module requires a single <i>dx</i> and <i>dy</i>, it computes <i>dx</i> at the midpoint latitude of the domain. This approximation degrades near the poles.
 
-<h2>NOTES ON UPGRADING FROM r.flexure WITH gFlex v1</h2>
-
-<p>
-gFlex v2.0.0 introduces breaking API changes. Users upgrading from earlier versions of this module should be aware that:
-<ul>
-  <li>Boundary condition strings changed from PascalCase (e.g., <tt>0Moment0Shear</tt>, <tt>0Displacement0Slope</tt>, <tt>Mirror</tt>, <tt>Periodic</tt>) to short aliases (e.g., <tt>free</tt>, <tt>clamped</tt>, <tt>mirror</tt>, <tt>periodic</tt>).</li>
-  <li>The <b>solver</b> and <b>tolerance</b> options have been removed; gFlex v2 uses only the direct sparse solver.</li>
-</ul>
-
 <h2>EXAMPLES</h2>
 
 <h3>Asymmetric volcanic load on a laterally heterogeneous lithosphere</h3>
