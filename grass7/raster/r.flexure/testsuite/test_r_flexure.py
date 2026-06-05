@@ -425,6 +425,54 @@ class TestRFlexurePadded(TestCase):
                 "g.remove", flags="f", type="raster", name=output, quiet=True
             )
 
+    def test_fd_scalar_te_padded(self):
+        """FD with scalar Te and -p flag; qs zero-padded only, output trimmed to original region."""
+        output = "test_rflex_pad_fd_scalar"
+        try:
+            self.assertModule(
+                "r.flexure",
+                flags="p",
+                method="FD",
+                input=self.load_pad,
+                te="5000",
+                te_units="m",
+                output=output,
+                northbc="free",
+                southbc="free",
+                eastbc="free",
+                westbc="free",
+            )
+            self.assertRasterExists(output)
+            self.assertRasterFitsUnivar(
+                raster=output, reference={"n": 900}, precision=0
+            )
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True
+            )
+
+    def test_fft_padded(self):
+        """FFT with -p flag; qs zero-padded, output trimmed to original region."""
+        output = "test_rflex_pad_fft"
+        try:
+            self.assertModule(
+                "r.flexure",
+                flags="p",
+                method="FFT",
+                input=self.load_pad,
+                te="5000",
+                te_units="m",
+                output=output,
+            )
+            self.assertRasterExists(output)
+            self.assertRasterFitsUnivar(
+                raster=output, reference={"n": 900}, precision=0
+            )
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True
+            )
+
 
 if __name__ == "__main__":
     test()
