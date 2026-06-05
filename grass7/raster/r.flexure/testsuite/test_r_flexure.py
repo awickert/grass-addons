@@ -285,6 +285,25 @@ class TestRFlexure(TestCase):
             westbc="free",
         )
 
+    def test_fd_mixed_bc(self):
+        """FD method with different BCs on each pair of sides.
+
+        Interface-layer test: verifies that northbc/southbc/eastbc/westbc are
+        passed to gFlex as four independent options and not accidentally aliased
+        to one another.
+        """
+        self._run_and_check(
+            "test_rflex_fd_mixed",
+            method="FD",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            northbc="clamped",
+            southbc="clamped",
+            eastbc="free",
+            westbc="free",
+        )
+
     def test_deflection_is_downward(self):
         """SAS deflection under a positive load is negative; checks sign and plausibility.
 
