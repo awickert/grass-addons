@@ -29,13 +29,9 @@ The flexural solution is generated for the current computational region, so be s
 <p>
 <b>te</b>, written in standard notation as T<sub>e</sub>, is the lithospheric elastic thickness. It may be either a scalar value or (for FD only) a raster of spatially variable elastic thickness.
 <p>
-<b>Boundary conditions</b> govern the behavior of the plate at the domain edges. Their meaning depends on the solution method:
+<b>Boundary conditions</b> apply to the FD solver only. SAS assumes the plate extends to infinity with no outside loads. FFT uses periodic boundary conditions.
 <p>
-For <b>SAS</b>, all boundary conditions default to <b>no_outside_loads</b>, which assumes the plate extends to infinity beyond the domain and that no loads act there.
-<p>
-For <b>FFT</b>, set all boundary conditions to <b>periodic</b> for an exact periodic transform (loads wrap around from one edge to the opposite). Any other value selects the zero-padded (no_outside_loads) approximation.
-<p>
-For <b>FD</b>, the available boundary conditions are:
+The FD boundary conditions are:
 <dl>
   <dt><b>clamped</b> &mdash; gFlex canonical name: <tt>zero_displacement_zero_slope</tt></dt>
   <dd>Displacement <i>w</i>&nbsp;=&nbsp;0 and slope <i>dw/dx</i>&nbsp;=&nbsp;0 (or <i>dw/dy</i>&nbsp;=&nbsp;0) at the boundary.
@@ -68,18 +64,17 @@ For <b>FD</b>, the available boundary conditions are:
 
   <dt><b>periodic</b></dt>
   <dd>The opposite edges are treated as adjacent: the east edge connects to the west edge and/or
-  the north edge connects to the south edge.
-  Must be applied in matched pairs (both east&ndash;west or both north&ndash;south).
-  For the FD solver this imposes a cyclic stencil; for the FFT solver, <b>periodic</b> on all
-  four boundaries selects the exact spectral solution, while any other value falls back to the
-  zero-padded approximation.</dd>
+  the north edge connects to the south edge. Imposes a cyclic stencil.
+  Must be applied in matched pairs (both east&ndash;west or both north&ndash;south).</dd>
 </dl>
 <p>
 Boundary conditions may be mixed freely, except that periodic must be applied symmetrically. To minimize boundary effects, place domain edges at least one flexural wavelength from the nearest load.
 <p>
 <b>In-plane stresses</b> (<b>sigma_xx</b>, <b>sigma_yy</b>, <b>sigma_xy</b>) add membrane (tectonic) stress terms to the governing equation, following the full variable-D formulation. These are supported by the FD and FFT solvers and default to 0 (no in-plane stress). Positive values are tensional.
 <p>
-The <b>-p flag</b> enables automatic domain padding for variable-Te FD runs. When elastic thickness varies spatially, abrupt rigidity gradients at domain edges can produce spurious deflections via the D-derivative terms in the FD stencil. The padding flag calls <tt>gflex.pad_domain()</tt> to extend the domain by one flexural wavelength on each side (with a smoothly tapered Te transition), solves on the padded domain, then trims the output back to the original GRASS region. Ignored for scalar Te or non-FD methods.
+The <b>-p flag</b> approximates <tt>no_outside_loads</tt> by extending the domain one flexural wavelength on each side with zero surface loads, solving on the enlarged domain, then trimming the deflection output back to the original GRASS region. Moving the boundary far from any load makes the boundary condition choice irrelevant: the plate's response decays to negligible levels before reaching the edge.
+<p>
+For FD with variable (raster) T<sub>e</sub>, the elastic thickness is also smoothly tapered across the padding ring (via <tt>gflex.pad_domain()</tt>) to suppress spurious deflections that would otherwise arise from abrupt rigidity gradients at the domain edge via the D-derivative terms in the van Wees and Cloetingh (1994) stencil. For FFT and scalar-T<sub>e</sub> FD, only the load array is zero-padded (via <tt>gflex.recommended_pad_width()</tt>). Not applicable to SAS, which already assumes an infinite plate with no outside loads.
 <p>
 <em>r.flexure</em> may be run in latitude/longitude coordinates with the <b>-l</b> flag. Because the module requires a single <i>dx</i> and <i>dy</i>, it computes <i>dx</i> at the midpoint latitude of the domain. This approximation degrades near the poles.
 

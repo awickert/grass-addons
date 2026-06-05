@@ -38,7 +38,7 @@
 
 # %flag
 # %  key: p
-# %  description: Auto-pad domain for variable-Te FD runs (reduces boundary effects from Te gradients at edges; trims output back to original region)
+# %  description: Pad domain to approximate no_outside_loads: extends with zero loads by one flexural wavelength, trims output back to original region (FD and FFT; for variable-Te FD also smoothly tapers Te)
 # %end
 
 # %option
@@ -81,41 +81,41 @@
 # %option
 # %  key: northbc
 # %  type: string
-# %  description: Northern boundary condition
-# %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
-# %  answer: no_outside_loads
+# %  description: Northern boundary condition (FD only)
+# %  options: clamped, pinned, free, mirror, periodic
+# %  answer: free
 # %  required : no
-# %  guisection: Boundary conditions
+# %  guisection: Boundary conditions (FD)
 # %end
 
 # %option
 # %  key: southbc
 # %  type: string
-# %  description: Southern boundary condition
-# %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
-# %  answer: no_outside_loads
+# %  description: Southern boundary condition (FD only)
+# %  options: clamped, pinned, free, mirror, periodic
+# %  answer: free
 # %  required : no
-# %  guisection: Boundary conditions
+# %  guisection: Boundary conditions (FD)
 # %end
 
 # %option
 # %  key: westbc
 # %  type: string
-# %  description: Western boundary condition
-# %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
-# %  answer: no_outside_loads
+# %  description: Western boundary condition (FD only)
+# %  options: clamped, pinned, free, mirror, periodic
+# %  answer: free
 # %  required : no
-# %  guisection: Boundary conditions
+# %  guisection: Boundary conditions (FD)
 # %end
 
 # %option
 # %  key: eastbc
 # %  type: string
-# %  description: Eastern boundary condition
-# %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
-# %  answer: no_outside_loads
+# %  description: Eastern boundary condition (FD only)
+# %  options: clamped, pinned, free, mirror, periodic
+# %  answer: free
 # %  required : no
-# %  guisection: Boundary conditions
+# %  guisection: Boundary conditions (FD)
 # %end
 
 # %option
@@ -274,11 +274,15 @@ def main():
     flex.sigma_xx = float(options["sigma_xx"])
     flex.sigma_yy = float(options["sigma_yy"])
     flex.sigma_xy = float(options["sigma_xy"])
-    # Boundary conditions
-    flex.bc_north = options["northbc"]
-    flex.bc_south = options["southbc"]
-    flex.bc_west = options["westbc"]
-    flex.bc_east = options["eastbc"]
+    # Boundary conditions: FD uses user options; FFT is always periodic;
+    # SAS uses no_outside_loads implicitly (gFlex default).
+    if flex.method == "fd":
+        flex.bc_north = options["northbc"]
+        flex.bc_south = options["southbc"]
+        flex.bc_west = options["westbc"]
+        flex.bc_east = options["eastbc"]
+    elif flex.method == "fft":
+        flex.bc_north = flex.bc_south = flex.bc_west = flex.bc_east = "periodic"
 
     # Set verbosity
     if grass.verbosity() >= 2:
@@ -324,21 +328,18 @@ def main():
         flex.dx = grass.region()["ewres"]
         flex.dy = grass.region()["nsres"]
 
-    # Auto-pad the domain if requested (FD with variable Te only)
+    # Auto-pad the domain if requested (approximates no_outside_loads)
     pad_width = 0
     if auto_pad:
-        if flex.method != "fd":
-            grass.warning(
-                _("Domain padding (-p) is only supported for the FD method; ignoring.")
-            )
-        elif not isinstance(flex.T_e, np.ndarray):
+        if flex.method == "sas":
             grass.warning(
                 _(
-                    "Domain padding (-p) is only useful for variable (raster) Te;"
-                    " ignoring."
+                    "Domain padding (-p) is not applicable to SAS"
+                    " (assumes infinite plate with no outside loads); ignoring."
                 )
             )
-        else:
+        elif flex.method == "fd" and isinstance(flex.T_e, np.ndarray):
+            # Variable-Te FD: smooth Te taper + zero-pad qs via pad_domain()
             Te_pad, qs_pad, pad_width = gflex.pad_domain(
                 flex.T_e,
                 np.array(flex.qs),
@@ -352,6 +353,20 @@ def main():
             )
             flex.T_e = Te_pad
             flex.qs = qs_pad
+            if flex.verbose:
+                grass.message(_("Domain padded by %d cells on each side.") % pad_width)
+        else:
+            # Scalar-Te FD or FFT: zero-pad qs only
+            pad_width = gflex.recommended_pad_width(
+                flex.T_e,
+                min(flex.dx, flex.dy),
+                E=flex.E,
+                nu=flex.nu,
+                rho_m=flex.rho_m,
+                rho_fill=flex.rho_fill,
+                g=flex.g,
+            )
+            flex.qs = np.pad(np.array(flex.qs), pad_width, mode="constant")
             if flex.verbose:
                 grass.message(_("Domain padded by %d cells on each side.") % pad_width)
 
