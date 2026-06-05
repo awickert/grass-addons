@@ -264,19 +264,16 @@ def main():
 
     # Inputs
     # Solution selection
-    flex.Method = options["method"]
-    if flex.Method == "FD":
-        flex.Solver = options["solver"]
-        flex.iterative_ConvergenceTolerance = float(options["tolerance"])
+    flex.method = options["method"].lower()
     # Parameters that are often changed for the solution
     flex.qs = garray.array(options["input"])
     # Elastic thickness
     try:
-        flex.Te = float(options["te"])
+        flex.T_e = float(options["te"])
     except ValueError:
-        flex.Te = np.array(garray.array(options["te"]))
+        flex.T_e = np.array(garray.array(options["te"]))
     if options["te_units"] == "km":
-        flex.Te *= 1000
+        flex.T_e *= 1000
     elif options["te_units"] == "m":
         pass
     # Parameters that often stay at their default values
@@ -292,18 +289,18 @@ def main():
     flex.sigma_yy = float(options["sigma_yy"])
     flex.sigma_xy = float(options["sigma_xy"])
     # Boundary conditions
-    flex.BC_N = options["northbc"]
-    flex.BC_S = options["southbc"]
-    flex.BC_W = options["westbc"]
-    flex.BC_E = options["eastbc"]
+    flex.bc_north = options["northbc"]
+    flex.bc_south = options["southbc"]
+    flex.bc_west = options["westbc"]
+    flex.bc_east = options["eastbc"]
 
     # Set verbosity
     if grass.verbosity() >= 2:
-        flex.Verbose = True
+        flex.verbose = True
     if grass.verbosity() >= 3:
-        flex.Debug = True
+        flex.debug = True
     elif grass.verbosity() == 0:
-        flex.Quiet = True
+        flex.quiet = True
 
     # First check if output exists
     if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
@@ -317,7 +314,7 @@ def main():
     # Check if lat/lon and proceed as directed
     if grass.region_env()[6] == "3":
         if latlon_override:
-            if flex.Verbose:
+            if flex.verbose:
                 grass.message(_("Latitude/longitude grid."))
                 grass.message(_("Based on r_Earth = 6371 km"))
                 grass.message(_("Setting y-resolution [m] to 111,195 * [degrees]"))
@@ -326,7 +323,7 @@ def main():
             dx_at_mid_latitude = (
                 (3.14159 / 180.0) * 6371000.0 * np.cos(np.deg2rad(NSmid))
             )
-            if flex.Verbose:
+            if flex.verbose:
                 grass.message(
                     _("Setting x-resolution [m] to %.2f * [degrees]")
                     % dx_at_mid_latitude
@@ -344,11 +341,11 @@ def main():
     # Auto-pad the domain if requested (FD with variable Te only)
     pad_width = 0
     if auto_pad:
-        if flex.Method != "FD":
+        if flex.method != "fd":
             grass.warning(
                 _("Domain padding (-p) is only supported for the FD method; ignoring.")
             )
-        elif not isinstance(flex.Te, np.ndarray):
+        elif not isinstance(flex.T_e, np.ndarray):
             grass.warning(
                 _(
                     "Domain padding (-p) is only useful for variable (raster) Te;"
@@ -357,7 +354,7 @@ def main():
             )
         else:
             Te_pad, qs_pad, pad_width = gflex.pad_domain(
-                flex.Te,
+                flex.T_e,
                 np.array(flex.qs),
                 flex.dx,
                 dy=flex.dy,
@@ -367,9 +364,9 @@ def main():
                 rho_fill=flex.rho_fill,
                 g=flex.g,
             )
-            flex.Te = Te_pad
+            flex.T_e = Te_pad
             flex.qs = qs_pad
-            if flex.Verbose:
+            if flex.verbose:
                 grass.message(_("Domain padded by %d cells on each side.") % pad_width)
 
     # CALCULATE!
