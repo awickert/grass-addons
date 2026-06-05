@@ -37,16 +37,42 @@ For <b>FFT</b>, set all boundary conditions to <b>periodic</b> for an exact peri
 <p>
 For <b>FD</b>, the available boundary conditions are:
 <dl>
-  <dt><b>clamped</b></dt>
-  <dd>Zero displacement and zero slope at the boundary (zero_displacement_zero_slope). Use for a plate clamped to a rigid wall, or when the far-field deflection is known to be zero. Note: if the nearest loaded cell is within one flexural wavelength of this boundary, the forebulge may be suppressed; gFlex will issue a warning.</dd>
-  <dt><b>pinned</b></dt>
-  <dd>Zero displacement and zero bending moment at the boundary (zero_displacement_zero_moment). A simply-supported plate end that cannot deflect but is free to rotate.</dd>
-  <dt><b>free</b></dt>
-  <dd>"Free broken end" (zero_moment_zero_shear), e.g., a rifted margin: the second and third derivatives of displacement are zero. Equivalent to the end of a free-hanging diving board.</dd>
-  <dt><b>mirror</b></dt>
-  <dd>Loads and elastic thickness are reflected at the boundary (zero_slope_zero_shear). Used to approximate a symmetric boundary.</dd>
+  <dt><b>clamped</b> &mdash; gFlex canonical name: <tt>zero_displacement_zero_slope</tt></dt>
+  <dd>Displacement <i>w</i>&nbsp;=&nbsp;0 and slope <i>dw/dx</i>&nbsp;=&nbsp;0 (or <i>dw/dy</i>&nbsp;=&nbsp;0) at the boundary.
+  The plate is rigidly attached to a fixed wall: it can neither deflect nor rotate at the edge.
+  Use when the domain boundary coincides with a stable craton or rigid block that prevents deformation,
+  or as a far-field approximation when the load is many flexural wavelengths from the edge.
+  Note: if any load is within one flexural wavelength of a clamped boundary, the forebulge
+  may be artificially suppressed; gFlex will issue a warning in that case.</dd>
+
+  <dt><b>pinned</b> &mdash; gFlex canonical name: <tt>zero_displacement_zero_moment</tt></dt>
+  <dd>Displacement <i>w</i>&nbsp;=&nbsp;0 and bending moment <i>M</i>&nbsp;=&nbsp;<i>D&nbsp;d&sup2;w/dx&sup2;</i>&nbsp;=&nbsp;0 at the boundary.
+  The plate cannot deflect at the edge but is free to rotate; no bending moment is transmitted across the boundary.
+  Corresponds to a simply-supported (pinned) end in structural mechanics.
+  Use when the plate rests on a rigid foundation at its edge without being clamped to it.</dd>
+
+  <dt><b>free</b> &mdash; gFlex canonical name: <tt>zero_moment_zero_shear</tt></dt>
+  <dd>Bending moment <i>M</i>&nbsp;=&nbsp;0 and shear force <i>V</i>&nbsp;=&nbsp;<i>D&nbsp;d&sup3;w/dx&sup3;</i>&nbsp;=&nbsp;0 at the boundary.
+  The plate end is entirely free: no moment and no transverse force are transmitted.
+  Equivalent to the free end of a cantilever (diving board).
+  Use for rifted or passive continental margins where the lithosphere has a broken, unsupported
+  edge, for subduction trenches with an applied edge load, and for broken-plate flexure problems.</dd>
+
+  <dt><b>mirror</b> &mdash; gFlex canonical name: <tt>zero_slope_zero_shear</tt></dt>
+  <dd>Slope <i>dw/dx</i>&nbsp;=&nbsp;0 and shear force <i>V</i>&nbsp;=&nbsp;0 at the boundary.
+  Mathematically equivalent to reflecting the load field (and, for variable-Te runs, the elastic
+  thickness field) across the boundary, so the full domain is treated as the symmetric half of a
+  larger problem.
+  Use when the loading geometry and lithospheric structure are symmetric about the domain edge,
+  for example along the axis of a mid-ocean ridge or the crest of a symmetric mountain belt.</dd>
+
   <dt><b>periodic</b></dt>
-  <dd>Wrap-around: the eastern and western edges (or northern and southern) are treated as adjacent. Must be applied in matched pairs (both East&ndash;West or both North&ndash;South).</dd>
+  <dd>The opposite edges are treated as adjacent: the east edge connects to the west edge and/or
+  the north edge connects to the south edge.
+  Must be applied in matched pairs (both east&ndash;west or both north&ndash;south).
+  For the FD solver this imposes a cyclic stencil; for the FFT solver, <b>periodic</b> on all
+  four boundaries selects the exact spectral solution, while any other value falls back to the
+  zero-padded approximation.</dd>
 </dl>
 <p>
 Boundary conditions may be mixed freely, except that periodic must be applied symmetrically. To minimize boundary effects, place domain edges at least one flexural wavelength from the nearest load.
