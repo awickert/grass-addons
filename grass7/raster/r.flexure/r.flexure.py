@@ -227,12 +227,11 @@ def main():
             )
         )
 
-    # TODO: restore minimum-version guard when gFlex 2.0.0 is released:
-    # if tuple(int(x) for x in gflex.__version__.split(".")[:3]) < (2, 0, 0):
-    #     grass.fatal(
-    #         _("r.flexure requires gFlex >= 2.0.0; installed: ")
-    #         + gflex.__version__
-    #     )
+    if tuple(int(x) for x in gflex.__version__.split(".")[:3]) < (2, 0, 0):
+        grass.fatal(
+            _("r.flexure requires gFlex >= 2.0.0; installed: ")
+            + gflex.__version__
+        )
 
     # This code is for 2D flexural isostasy
     flex = gflex.F2D()
