@@ -146,10 +146,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te="10000",
             te_units="m",
-            northbc="0Moment0Shear",
-            southbc="0Moment0Shear",
-            eastbc="0Moment0Shear",
-            westbc="0Moment0Shear",
+            northbc="zero_moment_zero_shear",
+            southbc="zero_moment_zero_shear",
+            eastbc="zero_moment_zero_shear",
+            westbc="zero_moment_zero_shear",
         )
 
     def test_fft_scalar_te(self):
@@ -180,10 +180,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te=self.te_rast,
             te_units="m",
-            northbc="0Moment0Shear",
-            southbc="0Moment0Shear",
-            eastbc="0Moment0Shear",
-            westbc="0Moment0Shear",
+            northbc="zero_moment_zero_shear",
+            southbc="zero_moment_zero_shear",
+            eastbc="zero_moment_zero_shear",
+            westbc="zero_moment_zero_shear",
         )
 
     def test_fd_sigma_stresses(self):
@@ -197,10 +197,10 @@ class TestRFlexure(TestCase):
             sigma_xx="1e6",
             sigma_yy="1e6",
             sigma_xy="0",
-            northbc="0Moment0Shear",
-            southbc="0Moment0Shear",
-            eastbc="0Moment0Shear",
-            westbc="0Moment0Shear",
+            northbc="zero_moment_zero_shear",
+            southbc="zero_moment_zero_shear",
+            eastbc="zero_moment_zero_shear",
+            westbc="zero_moment_zero_shear",
         )
 
     def test_te_km_units(self):
@@ -221,10 +221,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te="10000",
             te_units="m",
-            northbc="Periodic",
-            southbc="Periodic",
-            eastbc="Periodic",
-            westbc="Periodic",
+            northbc="periodic",
+            southbc="periodic",
+            eastbc="periodic",
+            westbc="periodic",
         )
 
     def test_fd_mirror_bc(self):
@@ -235,10 +235,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te="10000",
             te_units="m",
-            northbc="Mirror",
-            southbc="Mirror",
-            eastbc="Mirror",
-            westbc="Mirror",
+            northbc="mirror",
+            southbc="mirror",
+            eastbc="mirror",
+            westbc="mirror",
         )
 
 
@@ -289,10 +289,10 @@ class TestRFlexurePadded(TestCase):
                 te=self.te_pad,
                 te_units="m",
                 output=output,
-                northbc="0Moment0Shear",
-                southbc="0Moment0Shear",
-                eastbc="0Moment0Shear",
-                westbc="0Moment0Shear",
+                northbc="zero_moment_zero_shear",
+                southbc="zero_moment_zero_shear",
+                eastbc="zero_moment_zero_shear",
+                westbc="zero_moment_zero_shear",
             )
             self.assertRasterExists(output)
             # Output must be trimmed back to the original 30×30 region
