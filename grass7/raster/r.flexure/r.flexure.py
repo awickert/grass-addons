@@ -376,10 +376,9 @@ def main():
     grass.message(_("Computing flexural deflections..."))
     flex.initialize()
     flex.run()
-    flex.finalize()
-
-    # Trim padding from output if it was applied
+    # finalize() deletes flex.w in gFlex v2, so read it first
     w = flex.w
+    flex.finalize()
     if pad_width > 0:
         w = w[pad_width:-pad_width, pad_width:-pad_width]
 
