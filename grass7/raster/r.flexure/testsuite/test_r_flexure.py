@@ -147,10 +147,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te="10000",
             te_units="m",
-            northbc="zero_moment_zero_shear",
-            southbc="zero_moment_zero_shear",
-            eastbc="zero_moment_zero_shear",
-            westbc="zero_moment_zero_shear",
+            northbc="free",
+            southbc="free",
+            eastbc="free",
+            westbc="free",
         )
 
     def test_fft_scalar_te(self):
@@ -181,10 +181,10 @@ class TestRFlexure(TestCase):
             input=self.load,
             te=self.te_rast,
             te_units="m",
-            northbc="zero_moment_zero_shear",
-            southbc="zero_moment_zero_shear",
-            eastbc="zero_moment_zero_shear",
-            westbc="zero_moment_zero_shear",
+            northbc="free",
+            southbc="free",
+            eastbc="free",
+            westbc="free",
         )
 
     def test_fd_sigma_stresses(self):
@@ -198,10 +198,10 @@ class TestRFlexure(TestCase):
             sigma_xx="1e6",
             sigma_yy="1e6",
             sigma_xy="0",
-            northbc="zero_moment_zero_shear",
-            southbc="zero_moment_zero_shear",
-            eastbc="zero_moment_zero_shear",
-            westbc="zero_moment_zero_shear",
+            northbc="free",
+            southbc="free",
+            eastbc="free",
+            westbc="free",
         )
 
     def test_te_km_units(self):
@@ -242,50 +242,23 @@ class TestRFlexure(TestCase):
             westbc="mirror",
         )
 
-    def test_fd_zero_displacement_zero_slope_bc(self):
-        """FD method with zero_displacement_zero_slope boundary conditions."""
-        self._run_and_check(
-            "test_rflex_fd_zdzs",
-            method="FD",
-            input=self.load,
-            te="10000",
-            te_units="m",
-            northbc="zero_displacement_zero_slope",
-            southbc="zero_displacement_zero_slope",
-            eastbc="zero_displacement_zero_slope",
-            westbc="zero_displacement_zero_slope",
-        )
 
-    def test_fd_zero_slope_zero_shear_bc(self):
-        """FD method with zero_slope_zero_shear boundary conditions."""
+    def test_fd_pinned_bc(self):
+        """FD method with pinned BC (simply-supported: zero displacement, zero moment)."""
         self._run_and_check(
-            "test_rflex_fd_zczs",
+            "test_rflex_fd_pinned",
             method="FD",
             input=self.load,
             te="10000",
             te_units="m",
-            northbc="zero_slope_zero_shear",
-            southbc="zero_slope_zero_shear",
-            eastbc="zero_slope_zero_shear",
-            westbc="zero_slope_zero_shear",
-        )
-
-    def test_fd_zero_displacement_zero_moment_bc(self):
-        """FD method with zero_displacement_zero_moment (simply-supported) boundary conditions."""
-        self._run_and_check(
-            "test_rflex_fd_zdzm",
-            method="FD",
-            input=self.load,
-            te="10000",
-            te_units="m",
-            northbc="zero_displacement_zero_moment",
-            southbc="zero_displacement_zero_moment",
-            eastbc="zero_displacement_zero_moment",
-            westbc="zero_displacement_zero_moment",
+            northbc="pinned",
+            southbc="pinned",
+            eastbc="pinned",
+            westbc="pinned",
         )
 
     def test_fd_clamped_bc(self):
-        """FD method with clamped BC (alias for zero_displacement_zero_slope)."""
+        """FD method with clamped BC (zero displacement, zero slope)."""
         self._run_and_check(
             "test_rflex_fd_clamped",
             method="FD",
@@ -299,7 +272,7 @@ class TestRFlexure(TestCase):
         )
 
     def test_fd_free_bc(self):
-        """FD method with free BC (alias for zero_moment_zero_shear)."""
+        """FD method with free BC (zero moment, zero shear)."""
         self._run_and_check(
             "test_rflex_fd_free",
             method="FD",
@@ -418,10 +391,10 @@ class TestRFlexurePadded(TestCase):
                 te=self.te_pad,
                 te_units="m",
                 output=output,
-                northbc="zero_moment_zero_shear",
-                southbc="zero_moment_zero_shear",
-                eastbc="zero_moment_zero_shear",
-                westbc="zero_moment_zero_shear",
+                northbc="free",
+                southbc="free",
+                eastbc="free",
+                westbc="free",
             )
             self.assertRasterExists(output)
             # Output must be trimmed back to the original 30×30 region
