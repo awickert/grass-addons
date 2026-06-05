@@ -81,7 +81,7 @@
 # %option
 # %  key: northbc
 # %  type: string
-# %  description: Northern boundary condition: clamped/pinned/free/mirror/periodic
+# %  description: Northern boundary condition
 # %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
 # %  answer: no_outside_loads
 # %  required : no
@@ -91,7 +91,7 @@
 # %option
 # %  key: southbc
 # %  type: string
-# %  description: Southern boundary condition: clamped/pinned/free/mirror/periodic
+# %  description: Southern boundary condition
 # %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
 # %  answer: no_outside_loads
 # %  required : no
@@ -101,7 +101,7 @@
 # %option
 # %  key: westbc
 # %  type: string
-# %  description: Western boundary condition: clamped/pinned/free/mirror/periodic
+# %  description: Western boundary condition
 # %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
 # %  answer: no_outside_loads
 # %  required : no
@@ -111,7 +111,7 @@
 # %option
 # %  key: eastbc
 # %  type: string
-# %  description: Eastern boundary condition: clamped/pinned/free/mirror/periodic
+# %  description: Eastern boundary condition
 # %  options: clamped, pinned, free, mirror, periodic, no_outside_loads
 # %  answer: no_outside_loads
 # %  required : no
