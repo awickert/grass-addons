@@ -37,16 +37,14 @@ For <b>FFT</b>, set all boundary conditions to <b>periodic</b> for an exact peri
 <p>
 For <b>FD</b>, the available boundary conditions are:
 <dl>
-  <dt><b>zero_displacement_zero_slope</b> (alias: <b>clamped</b>)</dt>
-  <dd>Zero displacement and zero slope at the boundary. Use for a plate clamped to a rigid wall, or when the far-field deflection is known to be zero. Note: if the nearest loaded cell is within one flexural wavelength of this boundary, the forebulge may be suppressed; gFlex will issue a warning.</dd>
-  <dt><b>zero_moment_zero_shear</b> (alias: <b>free</b>)</dt>
-  <dd>"Free broken end" (e.g., rifted margin): the second and third derivatives of displacement are zero. Equivalent to the end of a free-hanging diving board.</dd>
-  <dt><b>zero_displacement_zero_moment</b></dt>
-  <dd>Zero displacement and zero bending moment at the boundary. Corresponds to a simply-supported (pinned) plate end that cannot deflect but is free to rotate.</dd>
-  <dt><b>zero_slope_zero_shear</b></dt>
-  <dd>First and third derivatives of displacement are zero. Used to approximate a symmetric boundary.</dd>
+  <dt><b>clamped</b></dt>
+  <dd>Zero displacement and zero slope at the boundary (zero_displacement_zero_slope). Use for a plate clamped to a rigid wall, or when the far-field deflection is known to be zero. Note: if the nearest loaded cell is within one flexural wavelength of this boundary, the forebulge may be suppressed; gFlex will issue a warning.</dd>
+  <dt><b>pinned</b></dt>
+  <dd>Zero displacement and zero bending moment at the boundary (zero_displacement_zero_moment). A simply-supported plate end that cannot deflect but is free to rotate.</dd>
+  <dt><b>free</b></dt>
+  <dd>"Free broken end" (zero_moment_zero_shear), e.g., a rifted margin: the second and third derivatives of displacement are zero. Equivalent to the end of a free-hanging diving board.</dd>
   <dt><b>mirror</b></dt>
-  <dd>Loads and elastic thickness are reflected at the boundary.</dd>
+  <dd>Loads and elastic thickness are reflected at the boundary (zero_slope_zero_shear). Used to approximate a symmetric boundary.</dd>
   <dt><b>periodic</b></dt>
   <dd>Wrap-around: the eastern and western edges (or northern and southern) are treated as adjacent. Must be applied in matched pairs (both East&ndash;West or both North&ndash;South).</dd>
 </dl>
@@ -64,7 +62,7 @@ The <b>-p flag</b> enables automatic domain padding for variable-Te FD runs. Whe
 <p>
 gFlex v2.0.0 introduces breaking API changes. Users upgrading from earlier versions of this module should be aware that:
 <ul>
-  <li>Boundary condition strings changed from PascalCase (e.g., <tt>0Moment0Shear</tt>, <tt>0Displacement0Slope</tt>, <tt>Mirror</tt>, <tt>Periodic</tt>) to snake_case (e.g., <tt>zero_moment_zero_shear</tt>, <tt>zero_displacement_zero_slope</tt>, <tt>mirror</tt>, <tt>periodic</tt>).</li>
+  <li>Boundary condition strings changed from PascalCase (e.g., <tt>0Moment0Shear</tt>, <tt>0Displacement0Slope</tt>, <tt>Mirror</tt>, <tt>Periodic</tt>) to short aliases (e.g., <tt>free</tt>, <tt>clamped</tt>, <tt>mirror</tt>, <tt>periodic</tt>).</li>
   <li>The <b>solver</b> and <b>tolerance</b> options have been removed; gFlex v2 uses only the direct sparse solver.</li>
 </ul>
 
