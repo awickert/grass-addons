@@ -195,6 +195,8 @@
 ##################
 
 # PYTHON
+import warnings
+
 import numpy as np
 
 # GRASS
@@ -355,11 +357,15 @@ def main():
 
     # CALCULATE!
     grass.message(_("Computing flexural deflections..."))
-    flex.initialize()
-    flex.run()
-    # finalize() deletes flex.w in gFlex v2, so read it first
-    w = flex.w
-    flex.finalize()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        flex.initialize()
+        flex.run()
+        # finalize() deletes flex.w in gFlex v2, so read it first
+        w = flex.w
+        flex.finalize()
+    for warninfo in caught:
+        grass.warning(str(warninfo.message))
     if pad_width > 0:
         w = w[pad_width:-pad_width, pad_width:-pad_width]
 
