@@ -270,6 +270,48 @@ class TestRFlexure(TestCase):
             westbc="zero_slope_zero_shear",
         )
 
+    def test_fd_zero_displacement_zero_moment_bc(self):
+        """FD method with zero_displacement_zero_moment (simply-supported) boundary conditions."""
+        self._run_and_check(
+            "test_rflex_fd_zdzm",
+            method="FD",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            northbc="zero_displacement_zero_moment",
+            southbc="zero_displacement_zero_moment",
+            eastbc="zero_displacement_zero_moment",
+            westbc="zero_displacement_zero_moment",
+        )
+
+    def test_fd_clamped_bc(self):
+        """FD method with clamped BC (alias for zero_displacement_zero_slope)."""
+        self._run_and_check(
+            "test_rflex_fd_clamped",
+            method="FD",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            northbc="clamped",
+            southbc="clamped",
+            eastbc="clamped",
+            westbc="clamped",
+        )
+
+    def test_fd_free_bc(self):
+        """FD method with free BC (alias for zero_moment_zero_shear)."""
+        self._run_and_check(
+            "test_rflex_fd_free",
+            method="FD",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            northbc="free",
+            southbc="free",
+            eastbc="free",
+            westbc="free",
+        )
+
     def test_deflection_is_downward(self):
         """SAS deflection under a positive load is negative; checks sign and plausibility.
 
