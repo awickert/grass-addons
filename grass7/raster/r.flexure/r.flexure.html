@@ -109,13 +109,12 @@ r.mapcalc expression="te_sigmoid = 15000 + 20000 / (1 + exp(-(x()-375000) / 2000
 # 30 MPa ≈ 1055 m of mantle-density rock; radius is 1.5 × the flexural parameter α
 r.mapcalc expression="load_volcano = if(sqrt((x()-375000)^2+(y()-375000)^2) &lt;= 61300, 3e7, 0)"
 
-# FD flexural deflection; zero_moment_zero_shear = free broken-end boundary condition
+# FD flexural deflection with free (broken-end) boundary conditions
 r.flexure method=FD \
     input=load_volcano \
     te=te_sigmoid te_units=m \
     output=w_volcano \
-    northbc=zero_moment_zero_shear southbc=zero_moment_zero_shear \
-    eastbc=zero_moment_zero_shear  westbc=zero_moment_zero_shear
+    northbc=free southbc=free eastbc=free westbc=free
 
 d.rast w_volcano
 d.legend w_volcano
@@ -139,8 +138,7 @@ r.flexure -p method=FD \
     input=load_volcano \
     te=te_sigmoid te_units=m \
     output=w_volcano_padded \
-    northbc=zero_moment_zero_shear southbc=zero_moment_zero_shear \
-    eastbc=zero_moment_zero_shear  westbc=zero_moment_zero_shear
+    northbc=free southbc=free eastbc=free westbc=free
 </pre></div>
 
 <h2>SEE ALSO</h2>
