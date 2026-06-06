@@ -452,7 +452,7 @@ class TestRFlexurePadded(TestCase):
             )
 
     def test_fft_padded(self):
-        """FFT with -p flag; qs zero-padded, output trimmed to original region."""
+        """FFT with -p flag; gFlex pads internally and trims flex.w to original region."""
         output = "test_rflex_pad_fft"
         try:
             self.assertModule(
