@@ -44,7 +44,7 @@
 # %option
 # %  key: method
 # %  type: string
-# %  description: Solution method: FD (finite difference), FFT (spectral, scalar Te only), or SAS (superposition of analytical solutions)
+# %  description: Solution method: FD (finite diff), FFT (spectral, scalar Te), or SAS
 # %  options: FD, FFT, SAS
 # %  required : yes
 # %end
