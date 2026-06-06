@@ -362,6 +362,103 @@ class TestRFlexure(TestCase):
             self.runModule("g.remove", flags="f", type="raster",
                            name=",".join([out_km, out_m]), quiet=True)
 
+    def test_deflection_is_downward_fd(self):
+        """FD deflection under a positive load is negative and physically plausible."""
+        output = "test_rflex_fd_sign"
+        try:
+            self.assertModule(
+                "r.flexure",
+                method="FD",
+                input=self.load,
+                te="10000",
+                te_units="m",
+                output=output,
+                northbc="free",
+                southbc="free",
+                eastbc="free",
+                westbc="free",
+            )
+            stats = grass.parse_command("r.univar", map=output, flags="g")
+            min_w = float(stats["min"])
+            self.assertLess(min_w, 0,
+                            "FD deflection under a downward load must be negative")
+            self.assertGreater(min_w, -1000,
+                               "FD deflection magnitude must be physically plausible (< 1 km)")
+        finally:
+            self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
+
+    def test_deflection_is_downward_fft(self):
+        """FFT deflection under a positive load is negative and physically plausible."""
+        output = "test_rflex_fft_sign"
+        try:
+            self.assertModule(
+                "r.flexure",
+                method="FFT",
+                input=self.load,
+                te="10000",
+                te_units="m",
+                output=output,
+            )
+            stats = grass.parse_command("r.univar", map=output, flags="g")
+            min_w = float(stats["min"])
+            self.assertLess(min_w, 0,
+                            "FFT deflection under a downward load must be negative")
+            self.assertGreater(min_w, -1000,
+                               "FFT deflection magnitude must be physically plausible (< 1 km)")
+        finally:
+            self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
+
+    def test_fft_sigma_stresses(self):
+        """FFT method with non-zero in-plane stresses."""
+        self._run_and_check(
+            "test_rflex_fft_sigma",
+            method="FFT",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            sigma_xx="1e6",
+            sigma_yy="1e6",
+            sigma_xy="0",
+        )
+
+    def test_sas_padded_warning(self):
+        """SAS with -p flag runs successfully; padding is not necessary but not an error."""
+        self._run_and_check(
+            "test_rflex_sas_pad",
+            flags="p",
+            method="SAS",
+            input=self.load,
+            te="10000",
+            te_units="m",
+        )
+
+    def test_fft_bc_args_ignored(self):
+        """FFT BCs are hardcoded to periodic; passing non-periodic BC args is not an error.
+
+        Interface-layer regression test: FFT with northbc=clamped etc. must
+        run successfully and produce physically valid output, confirming that
+        the non-periodic BC args are not accidentally wired into the FFT solver.
+        """
+        output = "test_rflex_fft_bc_clamp"
+        try:
+            self.assertModule(
+                "r.flexure", method="FFT", input=self.load,
+                te="10000", te_units="m", output=output,
+                northbc="clamped", southbc="clamped",
+                eastbc="clamped", westbc="clamped",
+            )
+            self.assertRasterExists(output)
+            self.assertRasterFitsUnivar(
+                raster=output, reference={"n": 100}, precision=0
+            )
+            stats = grass.parse_command("r.univar", map=output, flags="g")
+            self.assertLess(float(stats["min"]), 0,
+                            "FFT deflection under a downward load must be negative")
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True,
+            )
+
 
 @unittest.skipUnless(_gflex_ok(), "gFlex not available")
 class TestRFlexurePadded(TestCase):
