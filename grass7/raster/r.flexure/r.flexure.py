@@ -282,7 +282,11 @@ def main():
         flex.bc_west = options["westbc"]
         flex.bc_east = options["eastbc"]
     elif flex.method == "fft":
-        flex.bc_north = flex.bc_south = flex.bc_west = flex.bc_east = "periodic"
+        if not auto_pad:
+            # Exact periodic solution; gFlex does no internal padding.
+            flex.bc_north = flex.bc_south = flex.bc_west = flex.bc_east = "periodic"
+        # else: BCs left unset → gFlex defaults to no_outside_loads zero-padding
+        # (fft_pad_n_alpha × α per side) and trims flex.w back to original shape.
 
     # Set verbosity
     if grass.verbosity() >= 2:
@@ -338,9 +342,16 @@ def main():
                     " it already assumes an infinite plate with no outside loads."
                 )
             )
-        elif flex.method == "fd" and isinstance(flex.T_e, np.ndarray):
-            # Variable-Te FD: smooth Te taper + zero-pad qs via pad_domain()
-            Te_pad, qs_pad, pad_width = gflex.pad_domain(
+        elif flex.method == "fft":
+            # gFlex handles FFT padding internally (fft_pad_n_alpha × α per side)
+            # and trims flex.w back to original shape before returning.
+            # Nothing to do here; pad_width stays 0.
+            pass
+        else:
+            # FD (scalar or raster Te): delegate to pad_domain().
+            # For scalar Te it zero-pads qs and returns Te unchanged;
+            # for raster Te it also applies a smooth taper across the padding ring.
+            flex.T_e, qs_pad, pad_width = gflex.pad_domain(
                 flex.T_e,
                 np.array(flex.qs),
                 flex.dx,
@@ -351,22 +362,7 @@ def main():
                 rho_fill=flex.rho_fill,
                 g=flex.g,
             )
-            flex.T_e = Te_pad
             flex.qs = qs_pad
-            if flex.verbose:
-                grass.message(_("Domain padded by %d cells on each side.") % pad_width)
-        else:
-            # Scalar-Te FD or FFT: zero-pad qs only
-            pad_width = gflex.recommended_pad_width(
-                flex.T_e,
-                min(flex.dx, flex.dy),
-                E=flex.E,
-                nu=flex.nu,
-                rho_m=flex.rho_m,
-                rho_fill=flex.rho_fill,
-                g=flex.g,
-            )
-            flex.qs = np.pad(np.array(flex.qs), pad_width, mode="constant")
             if flex.verbose:
                 grass.message(_("Domain padded by %d cells on each side.") % pad_width)
 
