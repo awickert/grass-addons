@@ -51,17 +51,17 @@
 # %  required : yes
 # %end
 
-# %option G_OPT_R_INPUT
-# %  key: te
-# %  type: string
-# %  description: Elastic thickness: scalar (any solution method) or raster (FD only)
-# %  required : yes
-# %end
-
 # %option G_OPT_R_OUTPUT
 # %  key: output
 # %  type: string
 # %  description: Output raster map of vertical deflections [m]
+# %  required : yes
+# %end
+
+# %option G_OPT_R_INPUT
+# %  key: te
+# %  type: string
+# %  description: Elastic thickness: scalar (any solution method) or raster (FD only)
 # %  required : yes
 # %end
 
