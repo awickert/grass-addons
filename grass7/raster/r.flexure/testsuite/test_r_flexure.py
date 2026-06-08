@@ -143,7 +143,7 @@ class TestRFlexure(TestCase):
         """FD method with scalar Te [m]."""
         self._run_and_check(
             "test_rflex_fd",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -157,7 +157,7 @@ class TestRFlexure(TestCase):
         """FFT method with scalar Te [m]."""
         self._run_and_check(
             "test_rflex_fft",
-            method="FFT",
+            method="fft",
             input=self.load,
             te="10000",
             te_units="m",
@@ -167,7 +167,7 @@ class TestRFlexure(TestCase):
         """SAS method with scalar Te [m]."""
         self._run_and_check(
             "test_rflex_sas",
-            method="SAS",
+            method="sas",
             input=self.load,
             te="10000",
             te_units="m",
@@ -177,7 +177,7 @@ class TestRFlexure(TestCase):
         """FD method with spatially variable (raster) Te."""
         self._run_and_check(
             "test_rflex_fd_rte",
-            method="FD",
+            method="fd",
             input=self.load,
             te=self.te_rast,
             te_units="m",
@@ -191,7 +191,7 @@ class TestRFlexure(TestCase):
         """FD method with non-zero in-plane stresses."""
         self._run_and_check(
             "test_rflex_fd_sigma",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -208,7 +208,7 @@ class TestRFlexure(TestCase):
         """Te specified in km should match the same value in m (SAS, smoke test)."""
         self._run_and_check(
             "test_rflex_km",
-            method="SAS",
+            method="sas",
             input=self.load,
             te="10",
             te_units="km",
@@ -218,7 +218,7 @@ class TestRFlexure(TestCase):
         """FFT method with all-periodic boundary conditions (exact FFT path)."""
         self._run_and_check(
             "test_rflex_fft_per",
-            method="FFT",
+            method="fft",
             input=self.load,
             te="10000",
             te_units="m",
@@ -232,7 +232,7 @@ class TestRFlexure(TestCase):
         """FD method with Mirror boundary conditions."""
         self._run_and_check(
             "test_rflex_fd_mirror",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -247,7 +247,7 @@ class TestRFlexure(TestCase):
         """FD method with pinned BC (simply-supported: zero displacement, zero moment)."""
         self._run_and_check(
             "test_rflex_fd_pinned",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -261,7 +261,7 @@ class TestRFlexure(TestCase):
         """FD method with clamped BC (zero displacement, zero slope)."""
         self._run_and_check(
             "test_rflex_fd_clamped",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -275,7 +275,7 @@ class TestRFlexure(TestCase):
         """FD method with free BC (zero moment, zero shear)."""
         self._run_and_check(
             "test_rflex_fd_free",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -294,7 +294,7 @@ class TestRFlexure(TestCase):
         """
         self._run_and_check(
             "test_rflex_fd_mixed",
-            method="FD",
+            method="fd",
             input=self.load,
             te="10000",
             te_units="m",
@@ -316,7 +316,7 @@ class TestRFlexure(TestCase):
         try:
             self.assertModule(
                 "r.flexure",
-                method="SAS",
+                method="sas",
                 input=self.load,
                 te="10000",
                 te_units="m",
@@ -341,11 +341,11 @@ class TestRFlexure(TestCase):
         out_km = "test_rflex_te_explicit_km_def"
         try:
             self.assertModule(
-                "r.flexure", method="SAS", input=self.load,
+                "r.flexure", method="sas", input=self.load,
                 te="10", output=out_default,
             )
             self.assertModule(
-                "r.flexure", method="SAS", input=self.load,
+                "r.flexure", method="sas", input=self.load,
                 te="10", te_units="km", output=out_km,
             )
             stats_d = grass.parse_command("r.univar", map=out_default, flags="g")
@@ -368,11 +368,11 @@ class TestRFlexure(TestCase):
         out_m = "test_rflex_te_m"
         try:
             self.assertModule(
-                "r.flexure", method="SAS", input=self.load,
+                "r.flexure", method="sas", input=self.load,
                 te="10", te_units="km", output=out_km,
             )
             self.assertModule(
-                "r.flexure", method="SAS", input=self.load,
+                "r.flexure", method="sas", input=self.load,
                 te="10000", te_units="m", output=out_m,
             )
             stats_km = grass.parse_command("r.univar", map=out_km, flags="g")
@@ -395,7 +395,7 @@ class TestRFlexure(TestCase):
         try:
             self.assertModule(
                 "r.flexure",
-                method="FD",
+                method="fd",
                 input=self.load,
                 te="10000",
                 te_units="m",
@@ -420,7 +420,7 @@ class TestRFlexure(TestCase):
         try:
             self.assertModule(
                 "r.flexure",
-                method="FFT",
+                method="fft",
                 input=self.load,
                 te="10000",
                 te_units="m",
@@ -439,7 +439,7 @@ class TestRFlexure(TestCase):
         """FFT method with non-zero in-plane stresses."""
         self._run_and_check(
             "test_rflex_fft_sigma",
-            method="FFT",
+            method="fft",
             input=self.load,
             te="10000",
             te_units="m",
@@ -458,7 +458,7 @@ class TestRFlexure(TestCase):
         output = "test_rflex_fft_bc_clamp"
         try:
             self.assertModule(
-                "r.flexure", method="FFT", input=self.load,
+                "r.flexure", method="fft", input=self.load,
                 te="10000", te_units="m", output=output,
                 northbc="clamped", southbc="clamped",
                 eastbc="clamped", westbc="clamped",
@@ -518,7 +518,7 @@ class TestRFlexurePadded(TestCase):
         try:
             self.assertModule(
                 "r.flexure",
-                method="FD",
+                method="fd",
                 input=self.load_pad,
                 te=self.te_pad,
                 te_units="m",
@@ -544,7 +544,7 @@ class TestRFlexurePadded(TestCase):
         try:
             self.assertModule(
                 "r.flexure",
-                method="FD",
+                method="fd",
                 input=self.load_pad,
                 te="5000",
                 te_units="m",
@@ -569,7 +569,7 @@ class TestRFlexurePadded(TestCase):
         try:
             self.assertModule(
                 "r.flexure",
-                method="FFT",
+                method="fft",
                 input=self.load_pad,
                 te="5000",
                 te_units="m",

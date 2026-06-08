@@ -39,8 +39,8 @@
 # %option
 # %  key: method
 # %  type: string
-# %  description: FD (finite diff), FFT (spectral), or SAS (superposition)
-# %  options: FD, FFT, SAS
+# %  description: fd (finite diff), fft (spectral), or sas (superposition)
+# %  options: fd, fft, sas
 # %  required : yes
 # %end
 

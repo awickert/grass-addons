@@ -109,7 +109,7 @@ r.mapcalc expression="te_sigmoid = 15000 + 20000 / (1 + exp(-(x()-375000) / 2000
 r.mapcalc expression="load_volcano = if(sqrt((x()-375000)^2+(y()-375000)^2) &lt;= 61300, 3e7, 0)"
 
 # FD flexural deflection; default infinite BCs approximate an unbounded plate
-r.flexure method=FD \
+r.flexure method=fd \
     input=load_volcano \
     te=te_sigmoid te_units=m \
     output=w_volcano
@@ -131,7 +131,7 @@ relevant edge to <b>free</b>:
 </p>
 
 <div class="code"><pre>
-r.flexure method=FD \
+r.flexure method=fd \
     input=load_volcano \
     te=te_sigmoid te_units=m \
     output=w_volcano_free_south \
