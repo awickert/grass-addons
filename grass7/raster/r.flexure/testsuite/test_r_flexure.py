@@ -70,7 +70,7 @@ cols: 10
 10000 10000 10000 10000 10000 10000 10000 10000 10000 10000
 """
 
-# Fixtures for the -p padding test: 30×30 at 5000 m (150 km × 150 km).
+# Fixtures for the infinite-BC (no_outside_loads) padding test: 30×30 at 5000 m (150 km × 150 km).
 # Te = 5000 m → α ≈ 23 km, flexural wavelength ≈ 144 km,
 # recommended pad ≈ 29 cells/side → padded domain is 88×88 (manageable).
 # The 10×10 at 100 m fixture above would produce ~1300 cells of padding
@@ -421,23 +421,12 @@ class TestRFlexure(TestCase):
             sigma_xy="0",
         )
 
-    def test_sas_padded_warning(self):
-        """SAS with -p flag runs successfully; padding is not necessary but not an error."""
-        self._run_and_check(
-            "test_rflex_sas_pad",
-            flags="p",
-            method="SAS",
-            input=self.load,
-            te="10000",
-            te_units="m",
-        )
+    def test_fft_non_periodic_bc(self):
+        """FFT with non-periodic BCs (clamped) falls back to zero-padding and produces valid output.
 
-    def test_fft_bc_args_ignored(self):
-        """FFT BCs are hardcoded to periodic; passing non-periodic BC args is not an error.
-
-        Interface-layer regression test: FFT with northbc=clamped etc. must
-        run successfully and produce physically valid output, confirming that
-        the non-periodic BC args are not accidentally wired into the FFT solver.
+        Interface-layer regression test: FFT treats any non-'periodic' BC as
+        no_outside_loads (zero-padded). Passing clamped must not crash and must
+        produce valid, physically plausible deflections.
         """
         output = "test_rflex_fft_bc_clamp"
         try:
@@ -462,12 +451,13 @@ class TestRFlexure(TestCase):
 
 @unittest.skipUnless(_gflex_ok(), "gFlex not available")
 class TestRFlexurePadded(TestCase):
-    """Test -p domain padding with a domain appropriately sized for the flexural wavelength.
+    """Test infinite (no_outside_loads) BC with a domain sized for the flexural wavelength.
 
     The main TestRFlexure fixture (10×10 at 100 m, Te=10 km) would produce
-    ~1300 cells of padding per side, creating a 2600×2600 FD problem that
-    crashes the direct solver.  Here we use 30×30 at 5000 m with Te=5000 m
-    so padding is ~29 cells/side (88×88 padded domain).
+    ~300+ cells of padding per side, making the FD solve prohibitively large.
+    Here we use 30×30 at 5000 m with Te=5000 m so padding is ~29 cells/side
+    (88×88 padded domain).  FD tests in TestRFlexure use explicit non-infinite
+    BCs (e.g. free) to avoid this issue on that small domain.
     """
 
     load_pad = "test_rflex_pad_load"
@@ -496,21 +486,20 @@ class TestRFlexurePadded(TestCase):
         )
 
     def test_fd_raster_te_padded(self):
-        """FD with raster Te and -p domain-padding flag; output trimmed to original region."""
+        """FD with raster Te and infinite BCs; gFlex auto-pads and trims to original region."""
         output = "test_rflex_pad_out"
         try:
             self.assertModule(
                 "r.flexure",
-                flags="p",
                 method="FD",
                 input=self.load_pad,
                 te=self.te_pad,
                 te_units="m",
                 output=output,
-                northbc="free",
-                southbc="free",
-                eastbc="free",
-                westbc="free",
+                northbc="infinite",
+                southbc="infinite",
+                eastbc="infinite",
+                westbc="infinite",
             )
             self.assertRasterExists(output)
             # Output must be trimmed back to the original 30×30 region
@@ -523,21 +512,20 @@ class TestRFlexurePadded(TestCase):
             )
 
     def test_fd_scalar_te_padded(self):
-        """FD with scalar Te and -p flag; qs zero-padded only, output trimmed to original region."""
+        """FD with scalar Te and infinite BCs; qs zero-padded, output trimmed to original region."""
         output = "test_rflex_pad_fd_scalar"
         try:
             self.assertModule(
                 "r.flexure",
-                flags="p",
                 method="FD",
                 input=self.load_pad,
                 te="5000",
                 te_units="m",
                 output=output,
-                northbc="free",
-                southbc="free",
-                eastbc="free",
-                westbc="free",
+                northbc="infinite",
+                southbc="infinite",
+                eastbc="infinite",
+                westbc="infinite",
             )
             self.assertRasterExists(output)
             self.assertRasterFitsUnivar(
@@ -549,12 +537,11 @@ class TestRFlexurePadded(TestCase):
             )
 
     def test_fft_padded(self):
-        """FFT with -p flag; gFlex pads internally and trims flex.w to original region."""
+        """FFT with default infinite BCs; gFlex pads internally and trims to original region."""
         output = "test_rflex_pad_fft"
         try:
             self.assertModule(
                 "r.flexure",
-                flags="p",
                 method="FFT",
                 input=self.load_pad,
                 te="5000",
