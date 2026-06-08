@@ -36,11 +36,6 @@
 # %  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
 # %end
 
-# %flag
-# %  key: p
-# %  description: Pad domain to approximate no_outside_loads: extends with zero loads by one flexural wavelength, trims output back to original region (FD and FFT; for variable-Te FD also smoothly tapers Te)
-# %end
-
 # %option
 # %  key: method
 # %  type: string
@@ -81,41 +76,41 @@
 # %option
 # %  key: northbc
 # %  type: string
-# %  description: Northern boundary condition (FD only)
-# %  options: clamped, pinned, free, mirror, periodic
-# %  answer: free
+# %  description: Northern boundary condition (FD and FFT)
+# %  options: clamped, pinned, free, mirror, periodic, infinite
+# %  answer: infinite
 # %  required : no
-# %  guisection: Boundary conditions (FD)
+# %  guisection: Boundary conditions
 # %end
 
 # %option
 # %  key: southbc
 # %  type: string
-# %  description: Southern boundary condition (FD only)
-# %  options: clamped, pinned, free, mirror, periodic
-# %  answer: free
+# %  description: Southern boundary condition (FD and FFT)
+# %  options: clamped, pinned, free, mirror, periodic, infinite
+# %  answer: infinite
 # %  required : no
-# %  guisection: Boundary conditions (FD)
+# %  guisection: Boundary conditions
 # %end
 
 # %option
 # %  key: westbc
 # %  type: string
-# %  description: Western boundary condition (FD only)
-# %  options: clamped, pinned, free, mirror, periodic
-# %  answer: free
+# %  description: Western boundary condition (FD and FFT)
+# %  options: clamped, pinned, free, mirror, periodic, infinite
+# %  answer: infinite
 # %  required : no
-# %  guisection: Boundary conditions (FD)
+# %  guisection: Boundary conditions
 # %end
 
 # %option
 # %  key: eastbc
 # %  type: string
-# %  description: Eastern boundary condition (FD only)
-# %  options: clamped, pinned, free, mirror, periodic
-# %  answer: free
+# %  description: Eastern boundary condition (FD and FFT)
+# %  options: clamped, pinned, free, mirror, periodic, infinite
+# %  answer: infinite
 # %  required : no
-# %  guisection: Boundary conditions (FD)
+# %  guisection: Boundary conditions
 # %end
 
 # %option
@@ -246,7 +241,6 @@ def main():
 
     # Flags
     latlon_override = flags["l"]
-    auto_pad = flags["p"]
 
     # Inputs
     # Solution selection
@@ -274,19 +268,14 @@ def main():
     flex.sigma_xx = float(options["sigma_xx"])
     flex.sigma_yy = float(options["sigma_yy"])
     flex.sigma_xy = float(options["sigma_xy"])
-    # Boundary conditions: FD uses user options; FFT is always periodic;
-    # SAS uses no_outside_loads implicitly (gFlex default).
-    if flex.method == "fd":
-        flex.bc_north = options["northbc"]
-        flex.bc_south = options["southbc"]
-        flex.bc_west = options["westbc"]
-        flex.bc_east = options["eastbc"]
-    elif flex.method == "fft":
-        if not auto_pad:
-            # Exact periodic solution; gFlex does no internal padding.
-            flex.bc_north = flex.bc_south = flex.bc_west = flex.bc_east = "periodic"
-        # else: BCs left unset → gFlex defaults to no_outside_loads zero-padding
-        # (fft_pad_n_alpha × α per side) and trims flex.w back to original shape.
+    # "infinite" is the GRASS alias for gFlex's no_outside_loads BC.
+    _bc_alias = {"infinite": "no_outside_loads"}
+    # FD and FFT: pass user BCs through; SAS ignores BCs (always no_outside_loads).
+    if flex.method in ("fd", "fft"):
+        flex.bc_north = _bc_alias.get(options["northbc"], options["northbc"])
+        flex.bc_south = _bc_alias.get(options["southbc"], options["southbc"])
+        flex.bc_west  = _bc_alias.get(options["westbc"],  options["westbc"])
+        flex.bc_east  = _bc_alias.get(options["eastbc"],  options["eastbc"])
 
     # Set verbosity
     if grass.verbosity() >= 2:
@@ -332,40 +321,6 @@ def main():
         flex.dx = grass.region()["ewres"]
         flex.dy = grass.region()["nsres"]
 
-    # Auto-pad the domain if requested (approximates no_outside_loads)
-    pad_width = 0
-    if auto_pad:
-        if flex.method == "sas":
-            grass.warning(
-                _(
-                    "Domain padding (-p) is not necessary for SAS:"
-                    " it already assumes an infinite plate with no outside loads."
-                )
-            )
-        elif flex.method == "fft":
-            # gFlex handles FFT padding internally (fft_pad_n_alpha × α per side)
-            # and trims flex.w back to original shape before returning.
-            # Nothing to do here; pad_width stays 0.
-            pass
-        else:
-            # FD (scalar or raster Te): delegate to pad_domain().
-            # For scalar Te it zero-pads qs and returns Te unchanged;
-            # for raster Te it also applies a smooth taper across the padding ring.
-            flex.T_e, qs_pad, pad_width = gflex.pad_domain(
-                flex.T_e,
-                np.array(flex.qs),
-                flex.dx,
-                dy=flex.dy,
-                E=flex.E,
-                nu=flex.nu,
-                rho_m=flex.rho_m,
-                rho_fill=flex.rho_fill,
-                g=flex.g,
-            )
-            flex.qs = qs_pad
-            if flex.verbose:
-                grass.message(_("Domain padded by %d cells on each side.") % pad_width)
-
     # CALCULATE!
     grass.message(_("Computing flexural deflections..."))
     with warnings.catch_warnings(record=True) as caught:
@@ -377,8 +332,6 @@ def main():
         flex.finalize()
     for warninfo in caught:
         grass.warning(str(warninfo.message))
-    if pad_width > 0:
-        w = w[pad_width:-pad_width, pad_width:-pad_width]
 
     # Write to GRASS
     # Create a new garray buffer and write to it
