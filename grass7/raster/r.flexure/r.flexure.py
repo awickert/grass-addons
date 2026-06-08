@@ -215,7 +215,13 @@ def main():
 
     # Import gFlex only after we know we will actually do the computation
     try:
-        import gflex
+        # cmcrameri is an optional plotting dependency; GRASS never uses
+        # gFlex's plots, so suppress the missing-package warning at import.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message="cmcrameri is not installed", category=UserWarning
+            )
+            import gflex
     except ImportError:
         grass.fatal(
             _(
@@ -278,12 +284,16 @@ def main():
         flex.bc_west  = _bc_alias.get(options["westbc"],  options["westbc"])
         flex.bc_east  = _bc_alias.get(options["eastbc"],  options["eastbc"])
 
-    # Set verbosity
-    if grass.verbosity() >= 2:
-        flex.verbose = True
+    # Map GRASS verbosity to gFlex output flags.
+    # Default (1) and --quiet (0): suppress gFlex's banner and timing prints.
+    # --verbose (2): allow gFlex normal output.
+    # very verbose (3+): also enable gFlex verbose BC/debug prints.
     if grass.verbosity() >= 3:
+        flex.verbose = True
         flex.debug = True
-    elif grass.verbosity() == 0:
+    elif grass.verbosity() >= 2:
+        pass  # gFlex default: banner + timing visible
+    else:
         flex.quiet = True
 
     # First check if output exists
