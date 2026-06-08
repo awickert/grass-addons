@@ -331,6 +331,33 @@ class TestRFlexure(TestCase):
         finally:
             self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
 
+    def test_te_units_default_km(self):
+        """Omitting te_units uses the km default; result must match explicit te_units=km.
+
+        Interface-layer test: verifies that the GRASS answer: km default is
+        wired through to the Te *= 1000 conversion.
+        """
+        out_default = "test_rflex_te_default_units"
+        out_km = "test_rflex_te_explicit_km_def"
+        try:
+            self.assertModule(
+                "r.flexure", method="SAS", input=self.load,
+                te="10", output=out_default,
+            )
+            self.assertModule(
+                "r.flexure", method="SAS", input=self.load,
+                te="10", te_units="km", output=out_km,
+            )
+            stats_d = grass.parse_command("r.univar", map=out_default, flags="g")
+            stats_k = grass.parse_command("r.univar", map=out_km, flags="g")
+            self.assertAlmostEqual(
+                float(stats_d["min"]), float(stats_k["min"]), places=10,
+                msg="Default te_units=km must match explicit te_units=km",
+            )
+        finally:
+            self.runModule("g.remove", flags="f", type="raster",
+                           name=",".join([out_default, out_km]), quiet=True)
+
     def test_te_km_m_equivalence(self):
         """Te=10 km and Te=10000 m must produce identical deflections.
 
