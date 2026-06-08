@@ -39,7 +39,7 @@
 # %option
 # %  key: method
 # %  type: string
-# %  description: Solution method: FD (finite diff), FFT (spectral, scalar Te), or SAS
+# %  description: FD (finite diff), FFT (spectral), or SAS (superposition)
 # %  options: FD, FFT, SAS
 # %  required : yes
 # %end
@@ -54,7 +54,7 @@
 # %option G_OPT_R_INPUT
 # %  key: te
 # %  type: string
-# %  description: Elastic thickness: scalar or raster; units chosen in "te_units"
+# %  description: Elastic thickness: scalar (any solution method) or raster (FD only)
 # %  required : yes
 # %end
 
