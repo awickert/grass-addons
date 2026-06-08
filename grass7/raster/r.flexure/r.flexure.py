@@ -58,19 +58,20 @@
 # %  required : yes
 # %end
 
-# %option
-# %  key: te_units
-# %  type: string
-# %  description: Units for elastic thickness
-# %  options: m, km
-# %  required : yes
-# %end
-
 # %option G_OPT_R_OUTPUT
 # %  key: output
 # %  type: string
 # %  description: Output raster map of vertical deflections [m]
 # %  required : yes
+# %end
+
+# %option
+# %  key: te_units
+# %  type: string
+# %  description: Units for elastic thickness
+# %  options: m, km
+# %  answer: km
+# %  required : no
 # %end
 
 # %option
