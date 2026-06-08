@@ -18,9 +18,9 @@ The parameter <b>method</b> selects the solution technique:
   <dt><b>FD</b> &mdash; Finite Difference</dt>
   <dd>Typically faster for large grids and supports spatially variable elastic thickness via the van Wees and Cloetingh (1994) stencil. Memory requirements scale with grid size; choose a grid spacing appropriate for the flexural wavelength of the problem. Supports all boundary conditions and in-plane stresses.</dd>
   <dt><b>FFT</b> &mdash; Fast Fourier Transform (spectral)</dt>
-  <dd>Exact for periodic boundary conditions; uses a zero-padded approximation for all other boundary conditions (equivalent to no_outside_loads). Requires a scalar (uniform) elastic thickness. Supports in-plane stresses. Fastest option for large uniform-Te grids.</dd>
+  <dd>Requires a scalar (uniform) elastic thickness. Supports in-plane stresses. Fastest option for large uniform-T<sub>e</sub> grids. Each opposite edge pair (west/east, north/south) is handled independently: setting both sides of a pair to <b>periodic</b> makes that axis exactly periodic; any other value (including the default <b>infinite</b>) zero-pads that axis to approximate <tt>no_outside_loads</tt>. Mixed-axis configurations are valid.</dd>
   <dt><b>SAS</b> &mdash; Superposition of Analytical Solutions</dt>
-  <dd>Each grid cell is treated as a point load and its deflection computed analytically. Best for smaller grids or when accuracy near individual loads matters. Requires scalar elastic thickness.</dd>
+  <dd>Each grid cell is treated as a point load and its deflection computed analytically. Best for smaller grids or when accuracy near individual loads matters. Requires scalar elastic thickness. Boundary conditions are not applicable; the solver inherently assumes an infinite plate with no outside loads.</dd>
 </dl>
 <p>
 The flexural solution is generated for the current computational region, so be sure to check <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> before running the module.
@@ -29,10 +29,13 @@ The flexural solution is generated for the current computational region, so be s
 <p>
 <b>te</b>, written in standard notation as T<sub>e</sub>, is the lithospheric elastic thickness. It may be either a scalar value or (for FD only) a raster of spatially variable elastic thickness.
 <p>
-<b>Boundary conditions</b> apply to the FD solver only. SAS assumes the plate extends to infinity with no outside loads. FFT uses periodic boundary conditions.
+<b>Boundary conditions</b> apply to the FD and FFT solvers. SAS assumes the plate extends to infinity with no outside loads and ignores boundary condition settings.
 <p>
-The FD boundary conditions are:
+The boundary conditions are:
 <dl>
+  <dt><b>infinite</b> &mdash; gFlex canonical name: <tt>no_outside_loads</tt></dt>
+  <dd>The domain is automatically extended on that side by one flexural wavelength with zero loads, the solve is performed on the enlarged domain, and the deflection is trimmed back to the original region before returning. For variable-T<sub>e</sub> FD runs, the elastic thickness is also smoothly tapered across the padding ring to suppress spurious deflections from abrupt rigidity gradients at the domain edge (via the D-derivative terms in the van Wees &amp; Cloetingh 1994 stencil). For FFT, the load array is zero-padded by <tt>fft_pad_n_alpha</tt>&nbsp;&times;&nbsp;&alpha; per side (default 4&alpha;; &alpha;&nbsp;=&nbsp;(4D/&Delta;&rho;g)<sup>1/4</sup>) and trimmed internally. This is the most physically realistic choice for isolated loads far from any genuine plate edge, and is the default.</dd>
+
   <dt><b>clamped</b> &mdash; gFlex canonical name: <tt>zero_displacement_zero_slope</tt></dt>
   <dd>Displacement <i>w</i>&nbsp;=&nbsp;0 and slope <i>dw/dx</i>&nbsp;=&nbsp;0 (or <i>dw/dy</i>&nbsp;=&nbsp;0) at the boundary.
   The plate is rigidly attached to a fixed wall: it can neither deflect nor rotate at the edge.
@@ -56,29 +59,25 @@ The FD boundary conditions are:
 
   <dt><b>mirror</b> &mdash; gFlex canonical name: <tt>zero_slope_zero_shear</tt></dt>
   <dd>Slope <i>dw/dx</i>&nbsp;=&nbsp;0 and shear force <i>V</i>&nbsp;=&nbsp;0 at the boundary.
-  Mathematically equivalent to reflecting the load field (and, for variable-Te runs, the elastic
+  Mathematically equivalent to reflecting the load field (and, for variable-T<sub>e</sub> runs, the elastic
   thickness field) across the boundary, so the full domain is treated as the symmetric half of a
   larger problem.
   Use when the loading geometry and lithospheric structure are symmetric about the domain edge,
   for example along the axis of a mid-ocean ridge or the crest of a symmetric mountain belt.</dd>
 
-  <dt><b>periodic</b></dt>
+  <dt><b>periodic</b> (FD: matched pairs only; FFT: per opposite-edge pair)</dt>
   <dd>The opposite edges are treated as adjacent: the east edge connects to the west edge and/or
-  the north edge connects to the south edge. Imposes a cyclic stencil.
-  Must be applied in matched pairs (both east&ndash;west or both north&ndash;south).</dd>
+  the north edge connects to the south edge.
+  For FD, periodic must be applied in matched pairs (both east&ndash;west or both north&ndash;south);
+  a one-sided periodic BC will produce a warning.
+  For FFT, each axis pair is handled independently: setting both sides of a pair to <b>periodic</b>
+  makes that axis exactly periodic, while leaving the other pair at <b>infinite</b> (the default)
+  zero-pads that axis.</dd>
 </dl>
 <p>
-Boundary conditions may be mixed freely, except that periodic must be applied symmetrically. To minimize boundary effects, place domain edges at least one flexural wavelength from the nearest load.
+Boundary conditions may be mixed freely across the four sides, except that <b>periodic</b> must be applied in matched pairs. To minimize boundary effects with explicit BCs, place domain edges at least one flexural wavelength from the nearest load, or use <b>infinite</b> to let gFlex extend the domain automatically.
 <p>
 <b>In-plane stresses</b> (<b>sigma_xx</b>, <b>sigma_yy</b>, <b>sigma_xy</b>) add membrane (tectonic) stress terms to the governing equation, following the full variable-D formulation. These are supported by the FD and FFT solvers and default to 0 (no in-plane stress). Positive values are tensional.
-<p>
-The <b>-p flag</b> approximates <tt>no_outside_loads</tt> by padding the domain with zero surface loads so that the plate's response decays to negligible levels before reaching the boundary, making the boundary condition choice irrelevant.
-<p>
-For <b>FFT</b>, gFlex handles padding internally: it zero-pads the load by <tt>fft_pad_n_alpha</tt>&nbsp;&times;&nbsp;&alpha; on each side (default 4&alpha;; &alpha;&nbsp;=&nbsp;(4D/&Delta;&rho;g)<sup>1/4</sup> is the flexural parameter) and trims <tt>flex.w</tt> back to the original domain before returning. This replaces the default periodic boundary conditions.
-<p>
-For <b>FD</b>, gFlex <tt>pad_domain()</tt> extends the domain by one flexural wavelength on each side with zero loads. For variable (raster) T<sub>e</sub>, the elastic thickness is also smoothly tapered across the padding ring to suppress spurious deflections from abrupt rigidity gradients at the domain edge (via the D-derivative terms in the van Wees and Cloetingh (1994) stencil); for scalar T<sub>e</sub>, only the load array is zero-padded. The deflection output is trimmed back to the original GRASS region after the solve.
-<p>
-Not applicable to SAS, which already assumes an infinite plate with no outside loads.
 <p>
 <em>r.flexure</em> may be run in latitude/longitude coordinates with the <b>-l</b> flag. Because the module requires a single <i>dx</i> and <i>dy</i>, it computes <i>dx</i> at the midpoint latitude of the domain. This approximation degrades near the poles.
 
@@ -109,12 +108,11 @@ r.mapcalc expression="te_sigmoid = 15000 + 20000 / (1 + exp(-(x()-375000) / 2000
 # 30 MPa ≈ 1055 m of mantle-density rock; radius is 1.5 × the flexural parameter α
 r.mapcalc expression="load_volcano = if(sqrt((x()-375000)^2+(y()-375000)^2) &lt;= 61300, 3e7, 0)"
 
-# FD flexural deflection with free (broken-end) boundary conditions
+# FD flexural deflection; default infinite BCs approximate an unbounded plate
 r.flexure method=FD \
     input=load_volcano \
     te=te_sigmoid te_units=m \
-    output=w_volcano \
-    northbc=free southbc=free eastbc=free westbc=free
+    output=w_volcano
 
 d.rast w_volcano
 d.legend w_volcano
@@ -128,17 +126,16 @@ on the stiff eastern side.
 </p>
 
 <p>
-With the <b>-p</b> flag, the domain is automatically padded before solving
-to reduce artefacts caused by the T<sub>e</sub> gradient reaching the
-domain edge:
+For a broken-plate scenario (e.g. a passive margin or oceanic trench) set the
+relevant edge to <b>free</b>:
 </p>
 
 <div class="code"><pre>
-r.flexure -p method=FD \
+r.flexure method=FD \
     input=load_volcano \
     te=te_sigmoid te_units=m \
-    output=w_volcano_padded \
-    northbc=free southbc=free eastbc=free westbc=free
+    output=w_volcano_free_south \
+    southbc=free
 </pre></div>
 
 <h2>SEE ALSO</h2>
