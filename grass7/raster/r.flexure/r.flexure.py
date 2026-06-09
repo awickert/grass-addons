@@ -283,22 +283,12 @@ def main():
         flex.bc_west  = options["westbc"]
         flex.bc_east  = options["eastbc"]
 
-    # Map GRASS verbosity to gFlex output flags.
-    # gFlex defaults: quiet=False, verbose=True.
-    # --quiet (0): suppress everything including banner and timing.
-    # default (1): suppress BC/init debug prints; banner and timing visible.
-    # --verbose (2): gFlex defaults (banner + timing + BC debug).
-    # very verbose (3+): also enable gFlex debug prints.
+    # gFlex defaults to quiet (WARNING log level); opt in for higher verbosity.
     if grass.verbosity() >= 3:
-        flex.verbose = True
         flex.debug = True
     elif grass.verbosity() >= 2:
-        pass  # gFlex defaults: banner + timing + BC debug visible
-    elif grass.verbosity() >= 1:
-        flex.verbose = False  # suppress BC/init debug; banner + timing still on
-    else:  # --quiet
-        flex.quiet = True
-        flex.verbose = False
+        flex.verbose = True
+        flex.quiet = False
 
     # First check if output exists
     if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
