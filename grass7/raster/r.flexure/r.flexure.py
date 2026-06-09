@@ -295,6 +295,7 @@ def main():
         pass  # gFlex default: banner + timing visible
     else:
         flex.quiet = True
+        flex.verbose = False  # gFlex defaults verbose=True; must explicitly clear
 
     # First check if output exists
     if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
