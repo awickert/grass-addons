@@ -283,10 +283,9 @@ def main():
         flex.bc_west  = options["westbc"]
         flex.bc_east  = options["eastbc"]
 
-    # gFlex defaults to quiet (WARNING log level); opt in for higher verbosity.
+    # gFlex defaults to quiet (WARNING log level); opt in at --verbose (level 3).
+    # GRASS default verbosity is 2; level 3 is --verbose; there is no level 4.
     if grass.verbosity() >= 3:
-        flex.debug = True
-    elif grass.verbosity() >= 2:
         flex.verbose = True
         flex.quiet = False
 
