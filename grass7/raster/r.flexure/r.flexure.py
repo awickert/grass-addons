@@ -275,14 +275,13 @@ def main():
     flex.sigma_xx = float(options["sigma_xx"])
     flex.sigma_yy = float(options["sigma_yy"])
     flex.sigma_xy = float(options["sigma_xy"])
-    # "infinite" is the GRASS alias for gFlex's no_outside_loads BC.
-    _bc_alias = {"infinite": "no_outside_loads"}
     # FD and FFT: pass user BCs through; SAS ignores BCs (always no_outside_loads).
+    # 'infinite' is a native gFlex alias for no_outside_loads.
     if flex.method in ("fd", "fft"):
-        flex.bc_north = _bc_alias.get(options["northbc"], options["northbc"])
-        flex.bc_south = _bc_alias.get(options["southbc"], options["southbc"])
-        flex.bc_west  = _bc_alias.get(options["westbc"],  options["westbc"])
-        flex.bc_east  = _bc_alias.get(options["eastbc"],  options["eastbc"])
+        flex.bc_north = options["northbc"]
+        flex.bc_south = options["southbc"]
+        flex.bc_west  = options["westbc"]
+        flex.bc_east  = options["eastbc"]
 
     # Map GRASS verbosity to gFlex output flags.
     # gFlex defaults: quiet=False, verbose=True.
